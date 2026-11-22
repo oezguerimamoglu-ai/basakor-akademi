@@ -1,3 +1,7 @@
 # Local-only audio inputs and generated analysis outputs
 /audio-input/
 /analysis/
+
+# Python cache files
+__pycache__/
+*.py[cod]
