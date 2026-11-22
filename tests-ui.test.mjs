@@ -23,6 +23,7 @@ globalThis.requestAnimationFrame=()=>1;globalThis.cancelAnimationFrame=()=>{};
 await import('./app.mjs?test-ui');
 test('UI initializes with the full pattern catalog and MIDI channels',()=>{
   assert.equal(nodes.lesson.children.length,14,'all practice patterns are available immediately');assert.equal(nodes.levelGroup.value,'all');assert.equal(nodes.channel.children.length,16);
+  assert.equal(nodes.bassTone.children.filter(option=>String(option.value).startsWith('gm:')).length,128,'bass selector exposes the full General MIDI bank');assert.equal(nodes.epianoTone.children.filter(option=>String(option.value).startsWith('gm:')).length,128,'chord selector exposes the full General MIDI bank');
   assert.match(nodes.beats.innerHTML,/beat-0/);assert.match(nodes.pads.innerHTML,/Em/);
   assert.equal(window.basakorDebug.getState().lesson,'em-44');
 });

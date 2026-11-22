@@ -1,4 +1,4 @@
-# 🎹 BasAkor Akademi v0.3.2
+# 🎹 BasAkor Akademi v0.3.3
 
 Türkçe, sıfır bağımlılıklı bir **Korg Pa4X bas–akor eğitim PWA'sı**. Sol elle bas çizgisi, sağ elle akor çalmayı öğrenmek isteyen bir org müzisyeni için geliştirildi.
 
@@ -14,6 +14,7 @@ Türkçe, sıfır bağımlılıklı bir **Korg Pa4X bas–akor eğitim PWA'sı**
 - Metronom/davul sesi (Web Audio sentezi) ve 45–160 BPM, dokunarak tempo belirleme.
 - **İki gerçek bas gitar tonu:** Yamaha RBX parmak bası ve penayla bas. Bas sesleri CC0 1.0 lisanslı FreePats / Andrea Biasior kayıtlarından gelir; örnekler mobil Safari için WAV biçimine dönüştürülüp uygulamayla birlikte sunulur.
 - **İki e-piyano tonu:** DX7 tarzı klasik ve parlak FM e-piyano örnekleri. Akorlar seçilen CC0 örneklerinden çalar; sesler FreePats için Hexter yazılım sentezleyicisinden kaydedilmiştir.
+- **Çalışma ses bankası:** Bas ve akor ses seçicilerinde 128 General MIDI programı bulunur. Bu sesler Web Audio senteziyle yaklaşık üretilir; Yamaha bas ve FM e-piyano örnekleri ayrıca seçilebilir.
 - Akıllı 8 ölçülük alıştırma, bas–akor adımı görselleştirme, sesli örnek isteğe bağlı.
 - Sol el bası ve sağ el akoru ayrı gösteren ekran tuşları; sağ el akorları E4 ve üzeri register'dadır.
 - Doğru nota, akor bileşenleri, erken/geç vuruş geri bildirimi.

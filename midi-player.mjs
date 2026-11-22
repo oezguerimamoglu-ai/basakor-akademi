@@ -41,17 +41,32 @@ function noiseBuffer(context){
 }
 
 function instrumentShape(program){
-  const p=Number(program)||0;
-  if(p<=7)return {wave:'triangle',attack:.008,release:.18,sustain:.28,cutoff:5200};
-  if(p<=15)return {wave:'sine',attack:.004,release:.09,sustain:.32,cutoff:6500};
-  if(p<=23)return {wave:'square',attack:.012,release:.1,sustain:.7,cutoff:2800};
-  if(p<=31)return {wave:'triangle',attack:.003,release:.12,sustain:.12,cutoff:4300};
-  if(p<=39)return {wave:'triangle',attack:.004,release:.13,sustain:.55,cutoff:1900};
-  if(p<=55)return {wave:'sawtooth',attack:.075,release:.24,sustain:.68,cutoff:3000};
-  if(p<=63)return {wave:'sawtooth',attack:.025,release:.13,sustain:.72,cutoff:3200};
-  if(p<=79)return {wave:'triangle',attack:.018,release:.12,sustain:.62,cutoff:3600};
-  if(p<=95)return {wave:'sawtooth',attack:.01,release:.13,sustain:.63,cutoff:4000};
-  return {wave:'sine',attack:.025,release:.25,sustain:.5,cutoff:4500};
+  const p=clamp(Math.round(Number(program)||0),0,127),member=p%8,tint=[0,.13,-.08,.2,-.14,.08,.17,-.18][member];
+  const shape=(wave,attack,release,sustain,cutoff)=>({wave,attack:Math.max(.002,attack*(1+tint)),release:Math.max(.04,release*(1-tint)),sustain:clamp(sustain+tint*.16,.08,.82),cutoff:Math.max(600,cutoff*(1+tint*1.8))});
+  if(p<=7)return shape(['triangle','sine','triangle','sawtooth','sine','triangle','square','sawtooth'][member],.008,.18,.28,5200);
+  if(p<=15)return shape(['sine','triangle','sine','triangle','sine','triangle','sine','triangle'][member],.004,.09,.32,6500);
+  if(p<=23)return shape(['square','sawtooth','square','triangle','square','sawtooth','triangle','square'][member],.012,.1,.7,2800);
+  if(p<=31)return shape(['triangle','sawtooth','triangle','sine','triangle','sawtooth','square','triangle'][member],.003,.12,.12,4300);
+  if(p<=39)return shape(['triangle','sawtooth','triangle','square','triangle','sine','sawtooth','square'][member],.004,.13,.55,1900);
+  if(p<=47)return shape(['sawtooth','triangle','sawtooth','triangle','sawtooth','sine','triangle','sine'][member],member===5?.004:.075,.24,.68,3000);
+  if(p<=55)return shape(['sawtooth','triangle','sawtooth','triangle','sawtooth','sine','triangle','sine'][member],.075,.24,.68,3000);
+  if(p<=63)return shape(['sawtooth','square','sawtooth','triangle','sawtooth','square','triangle','sawtooth'][member],.025,.13,.72,3200);
+  if(p<=79)return shape(['triangle','sine','triangle','sine','triangle','sawtooth','sine','triangle'][member],.018,.12,.62,3600);
+  if(p<=95)return shape(['sawtooth','square','sawtooth','triangle','sawtooth','square','triangle','sine'][member],.01,.13,.63,4000);
+  return shape(['sine','triangle','sine','sawtooth','triangle','sine','square','triangle'][member],.025,.25,.5,4500);
+}
+
+/** Play one short General MIDI-style note through an existing AudioContext. */
+export function playProgramNote(context,note,program,when=context.currentTime+.001,duration=.35,volume=.1){
+  const shape=instrumentShape(program),start=Math.max(when,context.currentTime+.001),end=start+Math.max(.025,duration);
+  const attack=Math.min(shape.attack,Math.max(.003,(end-start)*.35)),oscillator=context.createOscillator(),filter=context.createBiquadFilter(),gain=context.createGain();
+  oscillator.type=shape.wave;oscillator.frequency.setValueAtTime(frequencyForMidi(note),start);
+  filter.type='lowpass';filter.frequency.setValueAtTime(shape.cutoff,start);filter.Q.value=.45;
+  const amplitude=clamp(volume,.015,.22);gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(amplitude,start+attack);
+  const decayAt=Math.min(end,start+attack+.075);if(decayAt<end)gain.gain.exponentialRampToValueAtTime(Math.max(.0002,amplitude*shape.sustain),decayAt);
+  const releaseStart=Math.max(start,end-Math.min(.035,(end-start)*.2));gain.gain.setValueAtTime(Math.max(.0002,amplitude*shape.sustain),releaseStart);
+  const releaseEnd=end+shape.release;gain.gain.exponentialRampToValueAtTime(.0001,releaseEnd);
+  oscillator.connect(filter).connect(gain).connect(context.destination);oscillator.start(start);oscillator.stop(releaseEnd+.01);
 }
 
 function addVoice(context,master,channel,sourceNodes,gainNode){
