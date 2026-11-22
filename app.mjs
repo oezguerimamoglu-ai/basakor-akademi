@@ -4,7 +4,7 @@ const $ = id=>document.getElementById(id);
 const KEY='basakor-akademi-progress-v2';
 const runLength=8;
 const state={
-  lesson:LESSONS[0],bpm:65,mode:'app',ctx:null,playing:false,waitingClock:false,demo:false,strict:false,
+  lesson:LESSONS[0],bpm:65,mode:'app',ctx:null,playing:false,waitingClock:false,demo:false,strict:false,bassTone:'finger',bassBuffers:{},bassLoading:null,
   originMs:0,audioStart:0,nextScheduled:0,timer:null,raf:null,sessionId:0,
   evaluated:new Map(),nextMiss:0,hits:0,misses:0,judged:0,visualBeat:-1,
   midi:null,midiInput:null,midiCluster:null,midiClusterTimer:null,midiNotes:new Map(),
@@ -20,7 +20,10 @@ function oscillator(freq,t,length,volume,type='sine'){
   if(!state.ctx)return;const c=state.ctx,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.0002,volume),t+.014);g.gain.exponentialRampToValueAtTime(.0001,t+length);o.connect(g).connect(c.destination);o.start(t);o.stop(t+length+.018);
 }
 function toneFromMidi(note,t,length=.24,volume=.12,type='triangle') {oscillator(440*Math.pow(2,(note-69)/12),t,length,volume,type)}
-function playNotes(notes,at=null){try{const c=audio();const t=at??c.currentTime+.002;notes.forEach((n,i)=>toneFromMidi(n,t+i*.004,notes.length>1?.26:.30,notes.length>1?.06:.16,notes.length>1?'triangle':'sine'));}catch{}}
+const BASS_SAMPLES={finger:[{root:33,file:'finger-A.wav'},{root:35,file:'finger-B.wav'},{root:39,file:'finger-Dsharp.wav'}],pick:[{root:33,file:'pick-A.wav'},{root:35,file:'pick-B.wav'},{root:40,file:'pick-E2.wav'}]};
+async function loadBassSamples(){if(state.bassLoading)return state.bassLoading;state.bassLoading=(async()=>{try{const c=audio();for(const [tone,entries] of Object.entries(BASS_SAMPLES)){state.bassBuffers[tone]={};await Promise.all(entries.map(async entry=>{const response=await fetch(`./assets/bass/${entry.file}`);if(!response.ok)throw new Error('Bas örnekleri yüklenemedi.');state.bassBuffers[tone][entry.root]=await c.decodeAudioData(await response.arrayBuffer());}));}}catch{state.bassBuffers={};}})();return state.bassLoading;}
+function playBass(note,t){const c=state.ctx;const samples=state.bassBuffers[state.bassTone];if(!samples){toneFromMidi(note,t,.32,.15,'triangle');return;}const roots=Object.keys(samples).map(Number),root=roots.reduce((a,b)=>Math.abs(b-note)<Math.abs(a-note)?b:a);const src=c.createBufferSource(),gain=c.createGain();src.buffer=samples[root];src.playbackRate.setValueAtTime(Math.pow(2,(note-root)/12),t);gain.gain.setValueAtTime(.72,t);gain.gain.setTargetAtTime(.0001,t+.32,.4);src.connect(gain).connect(c.destination);src.start(t);src.stop(t+1.8);}
+function playNotes(notes,at=null){try{const c=audio();const t=at??c.currentTime+.002;notes.forEach((n,i)=>{if(notes.length===1)playBass(n,t);else toneFromMidi(n,t+i*.004,.26,.06,'triangle')});}catch{}}
 function kick(t){const c=state.ctx,o=c.createOscillator(),g=c.createGain();o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(44,t+.14);g.gain.setValueAtTime(.28,t);g.gain.exponentialRampToValueAtTime(.0001,t+.17);o.connect(g).connect(c.destination);o.start(t);o.stop(t+.19)}
 function noise(t,duration=.06,level=.075,cutoff=2300){const c=state.ctx,size=Math.ceil(c.sampleRate*duration),buffer=c.createBuffer(1,size,c.sampleRate),d=buffer.getChannelData(0);for(let i=0;i<size;i++)d[i]=Math.random()*2-1;const o=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();o.buffer=buffer;f.type='highpass';f.frequency.value=cutoff;g.gain.setValueAtTime(level,t);g.gain.exponentialRampToValueAtTime(.0001,t+duration);o.connect(f).connect(g).connect(c.destination);o.start(t);o.stop(t+duration+.001)}
 function drums(t,step){const l=state.lesson;const start=l.accent.includes(step);const strong=step===0;
@@ -93,7 +96,7 @@ function animate(){if(!state.playing)return;const pos=beatPosition(),l=state.les
         showMeasure(measure);describeExpected(getSteps(l,measure)[step]);}
     }}state.raf=requestAnimationFrame(animate);
 }
-async function start(){if(state.playing)return;try{await audio().resume();}catch(e){setFeedback('Ses açılamadı: '+e.message,'bad');return;}
+async function start(){if(state.playing)return;try{await audio().resume();}catch(e){setFeedback('Ses açılamadı: '+e.message,'bad');return;}await loadBassSamples();
   state.mode=$('sync').value;state.demo=$('demo').checked;state.strict=$('strict').checked;resetSession();state.playing=true;
   $('play').disabled=true;$('stop').disabled=false;$('lesson').disabled=true;$('sync').disabled=true;$('bpm').disabled=true;$('tap').disabled=true;
   if(state.mode==='app'){
@@ -155,7 +158,7 @@ function handleMidi(ev){const d=ev.data,now=performance.now();if(!d||!d.length)r
 function selectSync(){state.mode=$('sync').value;const clock=state.mode==='clock';$('sourceHint').textContent=clock?'Pa4X’in kendi davulu çalar. Clock Send ve MIDI bağlantısı gerekir; cihazda test edilmelidir.':'Uygulamanın davulu çalar. Pa4X bağlantısı olmasa da çalışır.';$('clockStatus').textContent=clock?'Pa4X START/Clock bekleniyor':'MIDI Clock beklenmiyor';}
 function tapTempo(){const now=performance.now();state.tapTimes=state.tapTimes.filter(t=>now-t<3500);state.tapTimes.push(now);if(state.tapTimes.length>=3){const intervals=state.tapTimes.slice(1).map((t,i)=>t-state.tapTimes[i]);const average=intervals.reduce((a,b)=>a+b,0)/intervals.length;setBpm(60000/average);setFeedback(`Tempo: ${state.bpm} BPM. Üç veya daha fazla kez düzenli dokun.`);}else setFeedback('Dört eşit aralıklı vuruşla temponu belirle.');}
 function initialize(){drawKeyboard();for(const l of LESSONS){const opt=document.createElement('option');opt.value=l.id;opt.textContent=`${l.level}. ${l.title}`;$('lesson').appendChild(opt)}for(let ch=1;ch<=16;ch++){const opt=document.createElement('option');opt.value=String(ch);opt.textContent='Kanal '+ch;$('channel').appendChild(opt)}
-  $('play').addEventListener('click',start);$('stop').addEventListener('click',()=>stop());$('lesson').addEventListener('change',ev=>changeLesson(ev.target.value));$('bpm').addEventListener('input',ev=>setBpm(Number(ev.target.value)));$('sync').addEventListener('change',selectSync);$('demo').addEventListener('change',ev=>state.demo=ev.target.checked);$('strict').addEventListener('change',ev=>state.strict=ev.target.checked);$('tap').addEventListener('click',tapTempo);$('connect').addEventListener('click',()=>state.midi?refreshMidi():connect());$('device').addEventListener('change',midiInputChanged);
+  $('play').addEventListener('click',start);$('stop').addEventListener('click',()=>stop());$('lesson').addEventListener('change',ev=>changeLesson(ev.target.value));$('bpm').addEventListener('input',ev=>setBpm(Number(ev.target.value)));$('sync').addEventListener('change',selectSync);$('demo').addEventListener('change',ev=>state.demo=ev.target.checked);$('strict').addEventListener('change',ev=>state.strict=ev.target.checked);$('tap').addEventListener('click',tapTempo);$('connect').addEventListener('click',()=>state.midi?refreshMidi():connect());$('device').addEventListener('change',midiInputChanged);$('bassTone').addEventListener('change',ev=>{state.bassTone=ev.target.value;});
   $('reset').addEventListener('click',()=>{if(!window.confirm('Bu dersin yerel başarı kaydı sıfırlansın mı?'))return;delete state.records[state.lesson.id];save();resetSession();setFeedback('Bu dersin ilerleme kaydı sıfırlandı.');});
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&state.playing&&state.mode==='app'){stop();setFeedback('Sekme arka plana geçtiği için ritim durduruldu. Tekrar başlatabilirsin.');}});
   window.addEventListener('pagehide',()=>stop());
