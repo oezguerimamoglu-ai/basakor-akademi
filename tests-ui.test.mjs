@@ -12,12 +12,12 @@ class MockElement{
   querySelectorAll(){return []}
   get outerHTML(){return `<option value="${this.value}">${this.textContent}</option>`}
 }
-const ids='statusPill levelTag levelGroup lesson tempoValue bpm sync bassTone epianoTone demo strict play stop tap sourceHint meterTag measure measureProgress actionType actionNote actionDetail lessonDescription grouping beats feedback pads keyboard success mistakes accuracy progressFill completedMessage reset midiStatus connect device channel maxnote midiLast clockStatus instructions midiFile midiImportStatus midiAnalysis midiSummary midiMappingHint midiBassChannel midiChordChannel midiSourceKey midiTargetKey midiStartBar midiBarCount prepareMidiLesson midiChannelSummary midiPlayer midiPlayerPlay midiPlayerPause midiPlayerStop midiSeek midiTime midiPlayerRate midiPlayerChannelCount midiPlayerChannels midiPlayerAll midiPlayerPractice midiPlayerMute midiTransposePlayback midiTransposeLabel'.split(' ');
+const ids='statusPill levelTag levelGroup lesson tempoValue bpm sync bassTone epianoTone bassVolume bassVolumeValue chordVolume chordVolumeValue demo strict play stop tap sourceHint meterTag measure measureProgress actionType actionNote actionDetail lessonDescription grouping beats feedback pads keyboard success mistakes accuracy progressFill completedMessage reset midiStatus connect device channel maxnote midiLast clockStatus instructions midiFile midiImportStatus midiAnalysis midiSummary midiMappingHint midiBassChannel midiChordChannel midiSourceKey midiTargetKey midiStartBar midiBarCount prepareMidiLesson midiChannelSummary midiPlayer midiPlayerPlay midiPlayerPause midiPlayerStop midiSeek midiTime midiPlayerRate midiPlayerChannelCount midiPlayerChannels midiPlayerAll midiPlayerPractice midiPlayerMute midiTransposePlayback midiTransposeLabel'.split(' ');
 const nodes=Object.fromEntries(ids.map(id=>[id,new MockElement(id)]));
-nodes.maxnote.value='83';nodes.channel.value='all';nodes.sync.value='app';nodes.bassTone.value='finger';nodes.epianoTone.value='ep1';
+nodes.maxnote.value='83';nodes.channel.value='all';nodes.sync.value='app';nodes.bassTone.value='finger';nodes.epianoTone.value='ep1';nodes.bassVolume.value='100';nodes.chordVolume.value='100';
 globalThis.document={getElementById:id=>nodes[id]||null,querySelectorAll:()=>[],createElement:()=>new MockElement(),addEventListener(){},hidden:false};
-globalThis.window={AudioContext:class{currentTime=0;resume(){return Promise.resolve()}},addEventListener(){},confirm:()=>true};
-globalThis.localStorage={getItem:()=>null,setItem(){}};
+globalThis.window={AudioContext:class{currentTime=0;destination={};createGain(){return {gain:{value:1,setTargetAtTime(value){this.value=value}},connect(){}}}resume(){return Promise.resolve()}},addEventListener(){},confirm:()=>true};
+const savedStorage=new Map();globalThis.localStorage={getItem:key=>savedStorage.get(key)||null,setItem:(key,value)=>savedStorage.set(key,value)};
 Object.defineProperty(globalThis,'navigator',{configurable:true,value:{}});globalThis.location={protocol:'file:'};
 globalThis.requestAnimationFrame=()=>1;globalThis.cancelAnimationFrame=()=>{};
 await import('./app.mjs?test-ui');
@@ -26,6 +26,15 @@ test('UI initializes with the full pattern catalog and MIDI channels',()=>{
   assert.equal(nodes.bassTone.children.filter(option=>String(option.value).startsWith('gm:')).length,128,'bass selector exposes the full General MIDI bank');assert.equal(nodes.epianoTone.children.filter(option=>String(option.value).startsWith('gm:')).length,128,'chord selector exposes the full General MIDI bank');
   assert.match(nodes.beats.innerHTML,/beat-0/);assert.match(nodes.pads.innerHTML,/Em/);
   assert.equal(window.basakorDebug.getState().lesson,'em-44');
+});
+test('bass and chord playback levels adjust independently and persist on this device',()=>{
+  nodes.bassVolume.value='57';nodes.bassVolume.events.input({target:nodes.bassVolume});
+  nodes.chordVolume.value='34';nodes.chordVolume.events.input({target:nodes.chordVolume});
+  assert.equal(nodes.bassVolumeValue.textContent,'57%');assert.equal(nodes.chordVolumeValue.textContent,'34%');
+  assert.equal(window.basakorDebug.getState().bassVolume,57);assert.equal(window.basakorDebug.getState().chordVolume,34);
+  assert.deepEqual(JSON.parse(savedStorage.get('basakor-akademi-mix-v1')),{bassVolume:57,chordVolume:34});
+  nodes.bassVolume.value='100';nodes.bassVolume.events.input({target:nodes.bassVolume});
+  nodes.chordVolume.value='100';nodes.chordVolume.events.input({target:nodes.chordVolume});
 });
 test('start, simulated MIDI bass, stop, next lesson',async()=>{
   await nodes.play.events.click();assert.equal(window.basakorDebug.getState().playing,true);
