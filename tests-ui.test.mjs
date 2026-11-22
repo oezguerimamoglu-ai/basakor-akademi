@@ -21,8 +21,8 @@ globalThis.localStorage={getItem:()=>null,setItem(){}};
 Object.defineProperty(globalThis,'navigator',{configurable:true,value:{}});globalThis.location={protocol:'file:'};
 globalThis.requestAnimationFrame=()=>1;globalThis.cancelAnimationFrame=()=>{};
 await import('./app.mjs?test-ui');
-test('UI initializes and populates seven lessons and MIDI channels',()=>{
-  assert.equal(nodes.lesson.children.length,2,'Başlangıç filters to its two practice patterns');assert.equal(nodes.levelGroup.value,'beginner');assert.equal(nodes.channel.children.length,16);
+test('UI initializes with the full pattern catalog and MIDI channels',()=>{
+  assert.equal(nodes.lesson.children.length,14,'all practice patterns are available immediately');assert.equal(nodes.levelGroup.value,'all');assert.equal(nodes.channel.children.length,16);
   assert.match(nodes.beats.innerHTML,/beat-0/);assert.match(nodes.pads.innerHTML,/Em/);
   assert.equal(window.basakorDebug.getState().lesson,'em-44');
 });
@@ -38,14 +38,14 @@ test('start, simulated MIDI bass, stop, next lesson',async()=>{
   assert.equal(window.basakorDebug.getState().hits,2,'MIDI Em chord E4/G4/B4 must be recognized');
   nodes.stop.events.click();assert.equal(window.basakorDebug.getState().playing,false);
   nodes.levelGroup.value='meters';nodes.levelGroup.events.change({target:nodes.levelGroup});
-  assert.equal(nodes.lesson.children.length,3,'rhythm level shows three meters');
+  assert.equal(nodes.lesson.children.length,7,'rhythm level has seven patterns');
   assert.equal(window.basakorDebug.getState().lesson,'em-98');assert.match(nodes.meterTag.textContent,/9\/8/);
 });
 test('level and pattern selectors work together',()=>{
   nodes.lesson.value='em-78';nodes.lesson.events.change({target:nodes.lesson});assert.match(nodes.meterTag.textContent,/7\/8/);
-  nodes.levelGroup.value='chords';nodes.levelGroup.events.change({target:nodes.levelGroup});assert.equal(nodes.lesson.children.length,2);assert.equal(window.basakorDebug.getState().lesson,'em-am');
-  nodes.lesson.value='em-b7';nodes.lesson.events.change({target:nodes.lesson});assert.match(nodes.levelTag.textContent,/2\/2 kalıp/);
-  nodes.levelGroup.value='all';nodes.levelGroup.events.change({target:nodes.levelGroup});assert.equal(nodes.lesson.children.length,7);assert.equal(nodes.lesson.value,'em-b7');
+  nodes.levelGroup.value='chords';nodes.levelGroup.events.change({target:nodes.levelGroup});assert.equal(nodes.lesson.children.length,3);assert.equal(window.basakorDebug.getState().lesson,'em-am');
+  nodes.lesson.value='em-b7';nodes.lesson.events.change({target:nodes.lesson});assert.match(nodes.levelTag.textContent,/2\/3 kalıp/);
+  nodes.levelGroup.value='all';nodes.levelGroup.events.change({target:nodes.levelGroup});assert.equal(nodes.lesson.children.length,14);assert.equal(nodes.lesson.value,'em-b7');
 });
 test('separate Pa4X KEYBOARD note port and SOUND MIDI Clock port',async()=>{
   const keyboard={id:'kbd',name:'Pa4X KEYBOARD',onmidimessage:null};

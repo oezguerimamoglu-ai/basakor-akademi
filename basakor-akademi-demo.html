@@ -15,6 +15,7 @@
 @media(max-width:970px){.appgrid{grid-template-columns:1fr}.appgrid>.stack:last-child{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.midi{grid-row:span 2}}
 @media(max-width:650px){.shell{padding:16px 12px 25px}.hero{padding:30px 0 22px}.hero p{font-size:13px}.panel{padding:18px;border-radius:17px}.fields{grid-template-columns:1fr}.fields.two{grid-template-columns:repeat(2,minmax(0,1fr))}.appgrid>.stack:last-child{display:flex}.transport .btn{flex:1;padding:12px 11px;font-size:12px}.beatgrid{gap:5px}.beat{min-height:92px;padding:7px 1px}.beat .ord{font-size:17px}.beat .note{font-size:9px}.beat .type{font-size:8px}.beatgrid.long{gap:3px}.beatgrid.long .beat{border-radius:7px;min-height:85px}.beatgrid.long .beat .ord{font-size:12px}.beatgrid.long .beat .note,.beatgrid.long .beat .type{font-size:8px}.pad{min-height:85px;font-size:17px}.pill{font-size:10px}.brand{font-size:17px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important}}
+@media(max-width:650px){.beatgrid.extra-long{grid-template-columns:repeat(6,minmax(0,1fr))}}
 
   </style>
   <title>BasAkor Akademi | Bas–akor ve ritim çalış</title>
@@ -23,7 +24,7 @@
 <div class="shell">
   <header class="topbar">
     <div class="brand"><div class="brand-icon" aria-hidden="true">♫</div><div>BasAkor <span>Akademi</span><small>PA4X PRATİK STÜDYOSU</small></div></div>
-  <div class="pill" id="statusPill" role="status">● Hazır · v0.2.6</div>
+  <div class="pill" id="statusPill" role="status">● Hazır · v0.2.7</div>
   </header>
   <section class="hero">
     <div class="eyebrow">🎹 MI KARAR İLE BAŞLA · RİTMİ KENDİN YÖNET</div>
@@ -36,7 +37,7 @@
       <section class="panel settings" aria-labelledby="heading-settings">
         <div class="section-head"><h2 id="heading-settings"><span class="number">01</span> Çalışmayı seç</h2><span class="hint" id="levelTag">Başlangıç</span></div>
         <div class="fields">
-          <label class="field" for="levelGroup"><span>Seviye</span><select id="levelGroup"><option value="beginner">Başlangıç · temel</option><option value="meters">Orta · ritim kalıpları</option><option value="chords">İleri · akor geçişleri</option><option value="all">Tüm seviyeler</option></select></label>
+          <label class="field" for="levelGroup"><span>Seviye</span><select id="levelGroup"><option value="beginner">Başlangıç · temel</option><option value="meters">Orta · ritim kalıpları</option><option value="chords">İleri · akor geçişleri</option><option value="all" selected>Tüm seviyeler · 14 kalıp</option></select></label>
           <label class="field" for="lesson"><span>Çalışma kalıbı</span><select id="lesson"></select></label>
           <div class="field"><label for="bpm"><span>Tempo <strong id="tempoValue">65 BPM</strong></span></label><input type="range" id="bpm" min="45" max="160" step="1" value="65"></div>
           <label class="field" for="sync"><span>Davul kaynağı</span><select id="sync"><option value="app">Uygulama davulu</option><option value="clock">Pa4X davulu · MIDI Clock</option></select></label>
@@ -97,61 +98,43 @@
       <section class="panel tips"><h2>💡 Nasıl çalışmalı?</h2><p>Önce 65 BPM'de 8 ölçü boyunca sol elde bas, sağ elde akor çalış. %80 başarıya ulaştığında tempoyu artır.</p></section>
     </aside>
   </div>
-  <footer>BasAkor Akademi v0.2.6 · Bas: Andrea Biasior / FreePats · E-piyano: Roberto / FreePats FM Piano 1–2 · CC0 1.0 · Veriler bu cihazın tarayıcısında saklanır · Pa4X MIDI Clock özelliği cihazda henüz test edilmedi.</footer>
+  <footer>BasAkor Akademi v0.2.7 · Bas: Andrea Biasior / FreePats · E-piyano: Roberto / FreePats FM Piano 1–2 · CC0 1.0 · Veriler bu cihazın tarayıcısında saklanır · Pa4X MIDI Clock özelliği cihazda henüz test edilmedi.</footer>
 </div>
 <script>
 // BasAkor Akademi — saf müzik/puanlama işlevleri; DOM veya cihaz bağımlılığı yok.
-const VERSION = '0.2.6';
+const VERSION = '0.2.7';
 
 const step=(kind,label,notes,options={})=>({kind,label,notes,...options});
+const noteName = n => {
+  const names=['Do','Do♯','Re','Re♯','Mi','Fa','Fa♯','Sol','Sol♯','La','La♯','Si'];
+  return names[((n%12)+12)%12]+(Math.floor(n/12)-1);
+};
+const bass=(label,note)=>step('bass',label,`${label} · ${noteName(note)}`,{midi:[note]});
+const chord=(label,notes,midi)=>step('chord',label,notes,{midi});
+const rest=()=>step('rest','ES','–');
+const EM=()=>chord('Em','E4–G4–B4',[64,67,71]);
+const AM=()=>chord('Am','A3–C4–E4',[57,60,64]);
+const B7=()=>chord('B7','B3–D♯4–F♯4–A4',[59,63,66,69]);
 const LESSONS = [
-  {
-    id:'em-44', level:1, title:'Mi minör · İlk adım', meter:'4/4', grouping:[1,1,1,1], denominator:4,
-    description:'DUM–ÇAK–DUM–ÇAK. Sol elde birinci ve üçüncü vuruşta bas; sağ elde ikinci ve dördüncüde akor.',
-    defaultBpm:65, accent:[0,2],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]})]
-  },
-  {
-    id:'em-44-variation', level:2, title:'4/4 · İkinci vuruş', meter:'4/4', grouping:[1,1,1,1], denominator:4,
-    description:'Mi basıyla başla, ikinci bası Si’ye kaydır; düzeni 8 ölçü boyunca koru.',defaultBpm:85,accent:[0,2],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]})]
-  },
-  {
-    id:'em-98',level:3,title:'9/8 · 2+2+2+3',meter:'9/8',grouping:[2,2,2,3],denominator:8,
-    description:'Dokuz sekizlik: 2+2+2+3. Bu sadece koordinasyon kalıbıdır; yöresel ritim iddiası yoktur.',defaultBpm:90,accent:[0,2,4,6],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('rest','ES','–'),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('rest','ES','–'),step('bass','Sİ','B1',{midi:[35]}),step('rest','ES','–'),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('rest','ES','–'),step('rest','ES','–')]
-  },
-  {
-    id:'em-78',level:4,title:'7/8 · 2+2+3',meter:'7/8',grouping:[2,2,3],denominator:8,
-    description:'Yedi sekizlik sayımı: 1-2 / 1-2 / 1-2-3. Son grubun uzunluğunu hisset.',defaultBpm:90,accent:[0,2,4],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('rest','ES','–'),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('rest','ES','–'),step('bass','Sİ','B1',{midi:[35]}),step('rest','ES','–'),step('chord','Em','E4–G4–B4',{midi:[64,67,71]})]
-  },
-  {
-    id:'em-58',level:5,title:'5/8 · 2+3',meter:'5/8',grouping:[2,3],denominator:8,
-    description:'Beş sekizlik sayımı: 1-2 / 1-2-3. Sol el basını ve sağ el akorunu ritimde tut.',defaultBpm:90,accent:[0,2],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('rest','ES','–'),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('rest','ES','–'),step('chord','Em','E4–G4–B4',{midi:[64,67,71]})]
-  },
-  {
-    id:'em-am',level:6,title:'Em → Am · Akor değişimi',meter:'4/4',grouping:[1,1,1,1],denominator:4,
-    description:'Bir ölçü Em, ardından bir ölçü Am. Bas sol elde, akor sağ elde; iki ölçüde akoru değiştir.',defaultBpm:65,accent:[0,2],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]})],
-    alternate:[step('bass','LA','A1',{midi:[33]}),step('chord','Am','A3–C4–E4',{midi:[57,60,64]}),step('bass','Mİ','E2',{midi:[40]}),step('chord','Am','A3–C4–E4',{midi:[57,60,64]})]
-  },
-  {
-    id:'em-b7',level:7,title:'Em → B7 · Dönüş',meter:'4/4',grouping:[1,1,1,1],denominator:4,
-    description:'Em ve B7 arasında iki ölçülük alıştırma. B7 için dört ses gereklidir.',defaultBpm:60,accent:[0,2],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]})],
-    alternate:[step('bass','Sİ','B1',{midi:[35]}),step('chord','B7','B3–D♯4–F♯4–A4',{midi:[59,63,66,69]}),step('bass','FA♯','F♯2',{midi:[42]}),step('chord','B7','B3–D♯4–F♯4–A4',{midi:[59,63,66,69]})]
-  }
+  {id:'em-44',level:1,title:'Mi minör · İlk adım',meter:'4/4',grouping:[1,1,1,1],denominator:4,description:'DUM–ÇAK–DUM–ÇAK. Bas kök ve beşinci seste, akorlar ikinci ve dördüncü vuruşta.',defaultBpm:65,accent:[0,2],kickSteps:[0,2],snareSteps:[1,3],steps:[bass('Mİ',40),EM(),bass('Sİ',35),EM()]},
+  {id:'em-44-variation',level:2,title:'4/4 · İkinci vuruş',meter:'4/4',grouping:[1,1,1,1],denominator:4,description:'Aynı 4/4 düzeninde bası Si’ye taşı; vuruşları sabit tut.',defaultBpm:85,accent:[0,2],kickSteps:[0,2],snareSteps:[1,3],steps:[bass('Mİ',40),EM(),bass('Sİ',35),EM()]},
+  {id:'em-44-walk',level:3,title:'4/4 · Sekizlik bas yürüyüşü',meter:'4/4',grouping:[2,2,2,2],denominator:8,description:'Ölçü içinde daha hareketli bas çizgisi: Mi, Sol, Si, Re ve Fa♯ geçişlerini duy.',defaultBpm:72,accent:[0,2,4,6],kickSteps:[0,4],snareSteps:[2,6],steps:[bass('Mİ',40),bass('SOL',43),EM(),bass('Sİ',35),bass('Mİ',40),bass('RE',38),EM(),bass('FA♯',42)]},
+  {id:'em-68',level:4,title:'6/8 · Üçlü akış',meter:'6/8',grouping:[3,3],denominator:8,description:'İki üçlü grubu say. Bas ilk grubu kökte, ikinciyi beşinci ve geçiş sesiyle taşır.',defaultBpm:84,accent:[0,3],kickSteps:[0],snareSteps:[3],steps:[bass('Mİ',40),rest(),EM(),bass('Sİ',35),bass('RE',38),EM()]},
+  {id:'em-98',level:5,title:'9/8 · 2+2+2+3',meter:'9/8',grouping:[2,2,2,3],denominator:8,description:'Dokuz sekizlik sayımı: 2+2+2+3. Bas çizgisi Mi–Si–Re ile ölçüyü ileri taşır.',defaultBpm:90,accent:[0,2,4,6],kickSteps:[0,4],snareSteps:[2,6],steps:[bass('Mİ',40),rest(),EM(),bass('SOL',43),bass('Sİ',35),rest(),EM(),bass('RE',38),rest()]},
+  {id:'em-98-reverse',level:6,title:'9/8 · 3+2+2+2',meter:'9/8',grouping:[3,2,2,2],denominator:8,description:'Dokuz sekizliği bu kez 3+2+2+2 grupla; bas ilk üçlüden sonra yeni vuruş gruplarını belirginleştirir.',defaultBpm:90,accent:[0,3,5,7],kickSteps:[0,5],snareSteps:[3,7],steps:[bass('Mİ',40),rest(),EM(),bass('SOL',43),bass('Sİ',35),EM(),bass('RE',38),bass('Mİ',40),rest()]},
+  {id:'em-78',level:7,title:'7/8 · 2+2+3',meter:'7/8',grouping:[2,2,3],denominator:8,description:'Yedi sekizlik sayımı: 1-2 / 1-2 / 1-2-3. Bas Si ve Re geçişleriyle son gruba bağlanır.',defaultBpm:90,accent:[0,2,4],kickSteps:[0,4],snareSteps:[2],steps:[bass('Mİ',40),rest(),EM(),bass('Sİ',35),bass('RE',38),rest(),EM()]},
+  {id:'em-78-reverse',level:8,title:'7/8 · 3+2+2',meter:'7/8',grouping:[3,2,2],denominator:8,description:'Yedi sekizliği 3+2+2 say. Mi–Sol–Si bas yürüyüşü grupları daha duyulur kılar.',defaultBpm:90,accent:[0,3,5],kickSteps:[0,5],snareSteps:[3],steps:[bass('Mİ',40),bass('SOL',43),EM(),bass('Sİ',35),bass('RE',38),EM(),bass('Mİ',40)]},
+  {id:'em-58',level:9,title:'5/8 · 2+3',meter:'5/8',grouping:[2,3],denominator:8,description:'Beş sekizliği 2+3 say; bas ikinci grupta Si’ye geçer, son vuruş akora bağlanır.',defaultBpm:90,accent:[0,2],kickSteps:[0],snareSteps:[2],steps:[bass('Mİ',40),rest(),EM(),bass('Sİ',35),EM()]},
+  {id:'em-58-reverse',level:10,title:'5/8 · 3+2',meter:'5/8',grouping:[3,2],denominator:8,description:'Aynı beş sekizlik ölçüyü 3+2 grupla; Si bası kısa ikinci grubu başlatır.',defaultBpm:90,accent:[0,3],kickSteps:[0],snareSteps:[3],steps:[bass('Mİ',40),rest(),EM(),bass('Sİ',35),bass('RE',38)]},
+  {id:'em-128',level:11,title:'12/8 · Dörtlü üçleme',meter:'12/8',grouping:[3,3,3,3],denominator:8,description:'Dört üçlü grubu dolaş. Bas kök, beşinci ve geçiş sesleriyle her gruba yeni bir hareket verir.',defaultBpm:72,accent:[0,3,6,9],kickSteps:[0,6],snareSteps:[3,9],steps:[bass('Mİ',40),rest(),EM(),bass('Sİ',35),rest(),EM(),bass('Mİ',40),bass('RE',38),EM(),bass('Sİ',35),rest(),EM()]},
+  {id:'em-am',level:12,title:'Em → Am · Akor değişimi',meter:'4/4',grouping:[2,2,2,2],denominator:8,description:'Bir ölçü Em, bir ölçü Am. Sol elde kök, beşinci ve geçiş sesleriyle çizgiyi değiştir; sağ elde akorları takip et.',defaultBpm:65,accent:[0,2,4,6],kickSteps:[0,4],snareSteps:[2,6],steps:[bass('Mİ',40),bass('Sİ',35),EM(),bass('Sİ',35),bass('Mİ',40),bass('SOL',43),EM(),bass('RE',38)],alternate:[bass('LA',33),bass('Mİ',40),AM(),bass('DO',36),bass('LA',33),bass('Sİ',35),AM(),bass('Mİ',40)]},
+  {id:'em-b7',level:13,title:'Em → B7 · Basla dönüş',meter:'4/4',grouping:[2,2,2,2],denominator:8,description:'Em’den B7’ye geçerken Fa♯ ve Re♯ baslarıyla dönüşü hazırla; B7 akorunun dört sesini çal.',defaultBpm:60,accent:[0,2,4,6],kickSteps:[0,4],snareSteps:[2,6],steps:[bass('Mİ',40),bass('RE',38),EM(),bass('Sİ',35),bass('FA♯',42),EM(),bass('RE♯',39),bass('Sİ',35)],alternate:[bass('Sİ',35),bass('FA♯',42),B7(),bass('LA',45),bass('RE♯',39),bass('FA♯',42),B7(),bass('Sİ',35)]},
+  {id:'am-em',level:14,title:'Am → Em · Ters dönüş',meter:'4/4',grouping:[2,2,2,2],denominator:8,description:'Am’den Em’e geri dön. La–Do–Mi bas hareketiyle başlayıp Mi minörün kök ve beşinci seslerine bağlan.',defaultBpm:68,accent:[0,2,4,6],kickSteps:[0,4],snareSteps:[2,6],steps:[bass('LA',33),bass('Mİ',40),AM(),bass('DO',36),bass('LA',33),bass('Sİ',35),AM(),bass('Mİ',40)],alternate:[bass('Mİ',40),bass('SOL',43),EM(),bass('Sİ',35),bass('Mİ',40),bass('RE',38),EM(),bass('FA♯',42)]}
 ];
 
 const getLesson = id=>LESSONS.find(l=>l.id===id)||LESSONS[0];
 const getSteps = (lesson, measure=0)=>lesson.alternate && measure%2===1 ? lesson.alternate : lesson.steps;
 const msPerStep = (bpm,denominator=4)=>60000/Math.max(1,bpm)*(4/denominator);
-const noteName = n => {
-  const names=['Do','Do♯','Re','Re♯','Mi','Fa','Fa♯','Sol','Sol♯','La','La♯','Si'];
-  return names[((n%12)+12)%12]+(Math.floor(n/12)-1);
-};
 const pitchClass=n=>((n%12)+12)%12;
 const expectedMidi = event=>Array.isArray(event?.midi)?event.midi:[];
 const handName = kind=>kind==='bass'?'SOL EL · BAS':kind==='chord'?'SAĞ EL · AKOR':'ES';
@@ -202,13 +185,13 @@ const $ = id=>document.getElementById(id);
 const KEY='basakor-akademi-progress-v2';
 const runLength=8;
 const LESSON_GROUPS=[
-  {id:'beginner',label:'Başlangıç',levels:[1,2]},
-  {id:'meters',label:'Orta · Ritim kalıpları',levels:[3,4,5]},
-  {id:'chords',label:'İleri · Akor geçişleri',levels:[6,7]},
+  {id:'beginner',label:'Başlangıç',levels:[1,2,3,4]},
+  {id:'meters',label:'Orta · Ritim kalıpları',levels:[5,6,7,8,9,10,11]},
+  {id:'chords',label:'İleri · Akor geçişleri',levels:[12,13,14]},
   {id:'all',label:'Tüm seviyeler',levels:null}
 ];
 const state={
-  lesson:LESSONS[0],levelGroup:'beginner',bpm:65,mode:'app',ctx:null,playing:false,waitingClock:false,demo:false,strict:false,bassTone:'finger',epianoTone:'ep1',bassBuffers:{},epianoBuffers:{},bassLoading:null,
+  lesson:LESSONS[0],levelGroup:'all',bpm:65,mode:'app',ctx:null,playing:false,waitingClock:false,demo:false,strict:false,bassTone:'finger',epianoTone:'ep1',bassBuffers:{},epianoBuffers:{},bassLoading:null,
   originMs:0,audioStart:0,nextScheduled:0,timer:null,raf:null,sessionId:0,
   evaluated:new Map(),nextMiss:0,hits:0,misses:0,judged:0,visualBeat:-1,
   midi:null,midiInput:null,midiCluster:null,midiClusterTimer:null,midiNotes:new Map(),
@@ -232,10 +215,10 @@ function playEPiano(note,t){const c=state.ctx,samples=state.epianoBuffers[state.
 function playNotes(notes,at=null){try{const c=audio();const t=at??c.currentTime+.002;notes.forEach((n,i)=>{if(notes.length===1)playBass(n,t);else playEPiano(n,t+i*.004)});}catch{}}
 function kick(t){const c=state.ctx,o=c.createOscillator(),g=c.createGain();o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(44,t+.14);g.gain.setValueAtTime(.28,t);g.gain.exponentialRampToValueAtTime(.0001,t+.17);o.connect(g).connect(c.destination);o.start(t);o.stop(t+.19)}
 function noise(t,duration=.06,level=.075,cutoff=2300){const c=state.ctx,size=Math.ceil(c.sampleRate*duration),buffer=c.createBuffer(1,size,c.sampleRate),d=buffer.getChannelData(0);for(let i=0;i<size;i++)d[i]=Math.random()*2-1;const o=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();o.buffer=buffer;f.type='highpass';f.frequency.value=cutoff;g.gain.setValueAtTime(level,t);g.gain.exponentialRampToValueAtTime(.0001,t+duration);o.connect(f).connect(g).connect(c.destination);o.start(t);o.stop(t+duration+.001)}
-function drums(t,step){const l=state.lesson;const start=l.accent.includes(step);const strong=step===0;
-  if(strong || (l.denominator===4&&step===2) || (l.denominator===8&&step===4))kick(t);
-  if(!strong && (l.denominator===4 ? step%2===1 : start))noise(t,.095,.11,1400);
-  noise(t,.035,start?.04:.021,4200);
+function drums(t,step){const l=state.lesson,accent=l.accent.includes(step),kickSteps=l.kickSteps||[0],snareSteps=l.snareSteps||l.accent.filter(i=>i!==0);
+  if(kickSteps.includes(step))kick(t);
+  if(snareSteps.includes(step))noise(t,.095,.11,1400);
+  noise(t,.035,accent?.04:.021,4200);
 }
 function setFeedback(message,type=''){const el=$('feedback');el.className='feedback'+(type?' '+type:'');el.textContent=message;}
 function setStatus(message,playing=false){$('statusPill').textContent=message;$('statusPill').classList.toggle('playing',playing)}
@@ -243,14 +226,14 @@ function showMeasure(num){$('measure').textContent=`Ölçü ${num+1}`;$('measure
 function describeExpected(expected){if(!expected)return;$('actionType').textContent=handName(expected.kind);$('actionType').className='actiontype '+expected.kind;$('actionNote').textContent=expected.label;$('actionDetail').textContent=expected.notes;const activeNotes=expected.midi||[];document.querySelectorAll('.key').forEach(key=>key.classList.toggle('expect',activeNotes.includes(Number(key.dataset.note))));}
 function lessonsForGroup(groupId=state.levelGroup){const group=LESSON_GROUPS.find(g=>g.id===groupId)||LESSON_GROUPS[0];return group.levels?LESSONS.filter(l=>group.levels.includes(l.level)):LESSONS;}
 function updateLevelTag(){const group=LESSON_GROUPS.find(g=>g.id===state.levelGroup)||LESSON_GROUPS[0],list=lessonsForGroup(),index=list.findIndex(l=>l.id===state.lesson.id);$('levelTag').textContent=`${group.label} · ${Math.max(1,index+1)}/${list.length} kalıp`;}
-function patternName(lesson){const names={'em-44':'4/4 · Temel bas–akor','em-44-variation':'4/4 · İkinci vuruş','em-98':'9/8 · 2+2+2+3','em-78':'7/8 · 2+2+3','em-58':'5/8 · 2+3','em-am':'4/4 · Em → Am','em-b7':'4/4 · Em → B7'};return names[lesson.id]||lesson.title;}
+function patternName(lesson){const names={'em-44':'4/4 · Temel bas–akor'};return names[lesson.id]||lesson.title;}
 function fillLessonOptions(preferredId=state.lesson.id){const list=lessonsForGroup(),select=$('lesson');select.replaceChildren();for(const l of list){const opt=document.createElement('option');opt.value=l.id;opt.textContent=patternName(l);select.appendChild(opt);}const selected=list.some(l=>l.id===preferredId)?preferredId:list[0].id;select.value=selected;return selected;}
 function lessonMarkup(){const l=state.lesson;$('meterTag').textContent=`${l.meter} · ${l.grouping.join('+')}`;updateLevelTag();$('lessonDescription').textContent=l.description;$('grouping').textContent=l.grouping.join(' + ');
   const hints=l.steps.map((s,i)=>`<li><span class="highlight">${i+1}. vuruş:</span> ${s.kind==='rest'?'Es (çalma)':s.kind==='bass'?`Sol el bas ${s.label} · ${s.notes}`:`Sağ el akor ${s.label} · ${s.notes}`}</li>`);
   $('instructions').innerHTML=hints.join('');
   drawBeats(0);renderPads();showMeasure(0);describeExpected(l.steps[0]);updateScore();
 }
-function drawBeats(measure){const l=state.lesson,steps=getSteps(l,measure);const beatArea=$('beats');beatArea.style.setProperty('--cols',steps.length);beatArea.className='beatgrid'+(steps.length>4?' long':'');let groupStart=0;const starts=new Set(l.grouping.map(group=>{const i=groupStart;groupStart+=group;return i;}));
+function drawBeats(measure){const l=state.lesson,steps=getSteps(l,measure);const beatArea=$('beats');beatArea.style.setProperty('--cols',steps.length);beatArea.className='beatgrid'+(steps.length>4?' long':'')+(steps.length>9?' extra-long':'');let groupStart=0;const starts=new Set(l.grouping.map(group=>{const i=groupStart;groupStart+=group;return i;}));
   beatArea.innerHTML=steps.map((s,i)=>`<div class="beat ${s.kind} ${starts.has(i)?'group-start':''}" id="beat-${i}" data-step="${i}"><div class="ord">${i+1}</div><div class="type">${s.kind==='bass'?'SOL BAS':s.kind==='chord'?'SAĞ AKOR':'ES'}</div><div class="note">${s.label}</div></div>`).join('');
 }
 function relevantPads(){const actions=new Map();for(const e of [...state.lesson.steps,...(state.lesson.alternate||[])])if(e.kind!=='rest')actions.set(e.kind+':'+e.midi.join(','),e);return [...actions.values()];}

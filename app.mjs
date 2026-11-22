@@ -4,13 +4,13 @@ const $ = id=>document.getElementById(id);
 const KEY='basakor-akademi-progress-v2';
 const runLength=8;
 const LESSON_GROUPS=[
-  {id:'beginner',label:'Başlangıç',levels:[1,2]},
-  {id:'meters',label:'Orta · Ritim kalıpları',levels:[3,4,5]},
-  {id:'chords',label:'İleri · Akor geçişleri',levels:[6,7]},
+  {id:'beginner',label:'Başlangıç',levels:[1,2,3,4]},
+  {id:'meters',label:'Orta · Ritim kalıpları',levels:[5,6,7,8,9,10,11]},
+  {id:'chords',label:'İleri · Akor geçişleri',levels:[12,13,14]},
   {id:'all',label:'Tüm seviyeler',levels:null}
 ];
 const state={
-  lesson:LESSONS[0],levelGroup:'beginner',bpm:65,mode:'app',ctx:null,playing:false,waitingClock:false,demo:false,strict:false,bassTone:'finger',epianoTone:'ep1',bassBuffers:{},epianoBuffers:{},bassLoading:null,
+  lesson:LESSONS[0],levelGroup:'all',bpm:65,mode:'app',ctx:null,playing:false,waitingClock:false,demo:false,strict:false,bassTone:'finger',epianoTone:'ep1',bassBuffers:{},epianoBuffers:{},bassLoading:null,
   originMs:0,audioStart:0,nextScheduled:0,timer:null,raf:null,sessionId:0,
   evaluated:new Map(),nextMiss:0,hits:0,misses:0,judged:0,visualBeat:-1,
   midi:null,midiInput:null,midiCluster:null,midiClusterTimer:null,midiNotes:new Map(),
@@ -34,10 +34,10 @@ function playEPiano(note,t){const c=state.ctx,samples=state.epianoBuffers[state.
 function playNotes(notes,at=null){try{const c=audio();const t=at??c.currentTime+.002;notes.forEach((n,i)=>{if(notes.length===1)playBass(n,t);else playEPiano(n,t+i*.004)});}catch{}}
 function kick(t){const c=state.ctx,o=c.createOscillator(),g=c.createGain();o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(44,t+.14);g.gain.setValueAtTime(.28,t);g.gain.exponentialRampToValueAtTime(.0001,t+.17);o.connect(g).connect(c.destination);o.start(t);o.stop(t+.19)}
 function noise(t,duration=.06,level=.075,cutoff=2300){const c=state.ctx,size=Math.ceil(c.sampleRate*duration),buffer=c.createBuffer(1,size,c.sampleRate),d=buffer.getChannelData(0);for(let i=0;i<size;i++)d[i]=Math.random()*2-1;const o=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();o.buffer=buffer;f.type='highpass';f.frequency.value=cutoff;g.gain.setValueAtTime(level,t);g.gain.exponentialRampToValueAtTime(.0001,t+duration);o.connect(f).connect(g).connect(c.destination);o.start(t);o.stop(t+duration+.001)}
-function drums(t,step){const l=state.lesson;const start=l.accent.includes(step);const strong=step===0;
-  if(strong || (l.denominator===4&&step===2) || (l.denominator===8&&step===4))kick(t);
-  if(!strong && (l.denominator===4 ? step%2===1 : start))noise(t,.095,.11,1400);
-  noise(t,.035,start?.04:.021,4200);
+function drums(t,step){const l=state.lesson,accent=l.accent.includes(step),kickSteps=l.kickSteps||[0],snareSteps=l.snareSteps||l.accent.filter(i=>i!==0);
+  if(kickSteps.includes(step))kick(t);
+  if(snareSteps.includes(step))noise(t,.095,.11,1400);
+  noise(t,.035,accent?.04:.021,4200);
 }
 function setFeedback(message,type=''){const el=$('feedback');el.className='feedback'+(type?' '+type:'');el.textContent=message;}
 function setStatus(message,playing=false){$('statusPill').textContent=message;$('statusPill').classList.toggle('playing',playing)}
@@ -45,14 +45,14 @@ function showMeasure(num){$('measure').textContent=`Ölçü ${num+1}`;$('measure
 function describeExpected(expected){if(!expected)return;$('actionType').textContent=handName(expected.kind);$('actionType').className='actiontype '+expected.kind;$('actionNote').textContent=expected.label;$('actionDetail').textContent=expected.notes;const activeNotes=expected.midi||[];document.querySelectorAll('.key').forEach(key=>key.classList.toggle('expect',activeNotes.includes(Number(key.dataset.note))));}
 function lessonsForGroup(groupId=state.levelGroup){const group=LESSON_GROUPS.find(g=>g.id===groupId)||LESSON_GROUPS[0];return group.levels?LESSONS.filter(l=>group.levels.includes(l.level)):LESSONS;}
 function updateLevelTag(){const group=LESSON_GROUPS.find(g=>g.id===state.levelGroup)||LESSON_GROUPS[0],list=lessonsForGroup(),index=list.findIndex(l=>l.id===state.lesson.id);$('levelTag').textContent=`${group.label} · ${Math.max(1,index+1)}/${list.length} kalıp`;}
-function patternName(lesson){const names={'em-44':'4/4 · Temel bas–akor','em-44-variation':'4/4 · İkinci vuruş','em-98':'9/8 · 2+2+2+3','em-78':'7/8 · 2+2+3','em-58':'5/8 · 2+3','em-am':'4/4 · Em → Am','em-b7':'4/4 · Em → B7'};return names[lesson.id]||lesson.title;}
+function patternName(lesson){const names={'em-44':'4/4 · Temel bas–akor'};return names[lesson.id]||lesson.title;}
 function fillLessonOptions(preferredId=state.lesson.id){const list=lessonsForGroup(),select=$('lesson');select.replaceChildren();for(const l of list){const opt=document.createElement('option');opt.value=l.id;opt.textContent=patternName(l);select.appendChild(opt);}const selected=list.some(l=>l.id===preferredId)?preferredId:list[0].id;select.value=selected;return selected;}
 function lessonMarkup(){const l=state.lesson;$('meterTag').textContent=`${l.meter} · ${l.grouping.join('+')}`;updateLevelTag();$('lessonDescription').textContent=l.description;$('grouping').textContent=l.grouping.join(' + ');
   const hints=l.steps.map((s,i)=>`<li><span class="highlight">${i+1}. vuruş:</span> ${s.kind==='rest'?'Es (çalma)':s.kind==='bass'?`Sol el bas ${s.label} · ${s.notes}`:`Sağ el akor ${s.label} · ${s.notes}`}</li>`);
   $('instructions').innerHTML=hints.join('');
   drawBeats(0);renderPads();showMeasure(0);describeExpected(l.steps[0]);updateScore();
 }
-function drawBeats(measure){const l=state.lesson,steps=getSteps(l,measure);const beatArea=$('beats');beatArea.style.setProperty('--cols',steps.length);beatArea.className='beatgrid'+(steps.length>4?' long':'');let groupStart=0;const starts=new Set(l.grouping.map(group=>{const i=groupStart;groupStart+=group;return i;}));
+function drawBeats(measure){const l=state.lesson,steps=getSteps(l,measure);const beatArea=$('beats');beatArea.style.setProperty('--cols',steps.length);beatArea.className='beatgrid'+(steps.length>4?' long':'')+(steps.length>9?' extra-long':'');let groupStart=0;const starts=new Set(l.grouping.map(group=>{const i=groupStart;groupStart+=group;return i;}));
   beatArea.innerHTML=steps.map((s,i)=>`<div class="beat ${s.kind} ${starts.has(i)?'group-start':''}" id="beat-${i}" data-step="${i}"><div class="ord">${i+1}</div><div class="type">${s.kind==='bass'?'SOL BAS':s.kind==='chord'?'SAĞ AKOR':'ES'}</div><div class="note">${s.label}</div></div>`).join('');
 }
 function relevantPads(){const actions=new Map();for(const e of [...state.lesson.steps,...(state.lesson.alternate||[])])if(e.kind!=='rest')actions.set(e.kind+':'+e.midi.join(','),e);return [...actions.values()];}
