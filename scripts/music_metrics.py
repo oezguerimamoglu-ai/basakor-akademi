@@ -38,11 +38,14 @@ def _load_beatnetlite() -> Any:
 
     from BeatNetLite import BeatNetLite
 
+    # The Viterbi matrices scale with audio length and meter states. Keep
+    # the tempo grid compact so long songs fit within a Codespace's memory.
     return BeatNetLite(
         1,
         beats_per_bar=BEATS_PER_BAR_CANDIDATES,
         min_bpm=55.0,
         max_bpm=215.0,
+        num_tempi=16,
     )
 
 
