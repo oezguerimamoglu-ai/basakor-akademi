@@ -23,7 +23,7 @@
 <div class="shell">
   <header class="topbar">
     <div class="brand"><div class="brand-icon" aria-hidden="true">♫</div><div>BasAkor <span>Akademi</span><small>PA4X PRATİK STÜDYOSU</small></div></div>
-  <div class="pill" id="statusPill" role="status">● Hazır · v0.2.4</div>
+  <div class="pill" id="statusPill" role="status">● Hazır · v0.2.5</div>
   </header>
   <section class="hero">
     <div class="eyebrow">🎹 MI KARAR İLE BAŞLA · RİTMİ KENDİN YÖNET</div>
@@ -97,11 +97,11 @@
       <section class="panel tips"><h2>💡 Nasıl çalışmalı?</h2><p>Önce 65 BPM'de 8 ölçü boyunca sol elde bas, sağ elde akor çalış. %80 başarıya ulaştığında tempoyu artır.</p></section>
     </aside>
   </div>
-  <footer>BasAkor Akademi v0.2.4 · Bas: Andrea Biasior / FreePats · E-piyano: Roberto / FreePats FM Piano 1–2 · CC0 1.0 · Veriler bu cihazın tarayıcısında saklanır · Pa4X MIDI Clock özelliği cihazda henüz test edilmedi.</footer>
+  <footer>BasAkor Akademi v0.2.5 · Bas: Andrea Biasior / FreePats · E-piyano: Roberto / FreePats FM Piano 1–2 · CC0 1.0 · Veriler bu cihazın tarayıcısında saklanır · Pa4X MIDI Clock özelliği cihazda henüz test edilmedi.</footer>
 </div>
 <script>
 // BasAkor Akademi — saf müzik/puanlama işlevleri; DOM veya cihaz bağımlılığı yok.
-const VERSION = '0.2.4';
+const VERSION = '0.2.5';
 
 const step=(kind,label,notes,options={})=>({kind,label,notes,...options});
 const LESSONS = [
@@ -243,7 +243,8 @@ function showMeasure(num){$('measure').textContent=`Ölçü ${num+1}`;$('measure
 function describeExpected(expected){if(!expected)return;$('actionType').textContent=handName(expected.kind);$('actionType').className='actiontype '+expected.kind;$('actionNote').textContent=expected.label;$('actionDetail').textContent=expected.notes;const activeNotes=expected.midi||[];document.querySelectorAll('.key').forEach(key=>key.classList.toggle('expect',activeNotes.includes(Number(key.dataset.note))));}
 function lessonsForGroup(groupId=state.levelGroup){const group=LESSON_GROUPS.find(g=>g.id===groupId)||LESSON_GROUPS[0];return group.levels?LESSONS.filter(l=>group.levels.includes(l.level)):LESSONS;}
 function updateLevelTag(){const group=LESSON_GROUPS.find(g=>g.id===state.levelGroup)||LESSON_GROUPS[0],list=lessonsForGroup(),index=list.findIndex(l=>l.id===state.lesson.id);$('levelTag').textContent=`${group.label} · ${Math.max(1,index+1)}/${list.length} kalıp`;}
-function fillLessonOptions(preferredId=state.lesson.id){const list=lessonsForGroup(),select=$('lesson');select.replaceChildren();for(const l of list){const opt=document.createElement('option');opt.value=l.id;opt.textContent=`${l.meter} · ${l.grouping.join('+')} — ${l.title}`;select.appendChild(opt);}const selected=list.some(l=>l.id===preferredId)?preferredId:list[0].id;select.value=selected;return selected;}
+function patternName(lesson){const names={'em-44':'4/4 · Temel bas–akor','em-44-variation':'4/4 · İkinci vuruş','em-98':'9/8 · 2+2+2+3','em-78':'7/8 · 2+2+3','em-58':'5/8 · 2+3','em-am':'4/4 · Em → Am','em-b7':'4/4 · Em → B7'};return names[lesson.id]||lesson.title;}
+function fillLessonOptions(preferredId=state.lesson.id){const list=lessonsForGroup(),select=$('lesson');select.replaceChildren();for(const l of list){const opt=document.createElement('option');opt.value=l.id;opt.textContent=patternName(l);select.appendChild(opt);}const selected=list.some(l=>l.id===preferredId)?preferredId:list[0].id;select.value=selected;return selected;}
 function lessonMarkup(){const l=state.lesson;$('meterTag').textContent=`${l.meter} · ${l.grouping.join('+')}`;updateLevelTag();$('lessonDescription').textContent=l.description;$('grouping').textContent=l.grouping.join(' + ');
   const hints=l.steps.map((s,i)=>`<li><span class="highlight">${i+1}. vuruş:</span> ${s.kind==='rest'?'Es (çalma)':s.kind==='bass'?`Sol el bas ${s.label} · ${s.notes}`:`Sağ el akor ${s.label} · ${s.notes}`}</li>`);
   $('instructions').innerHTML=hints.join('');

@@ -1,4 +1,4 @@
-# 🎹 BasAkor Akademi v0.2.4
+# 🎹 BasAkor Akademi v0.2.5
 
 Türkçe, sıfır bağımlılıklı bir **Korg Pa4X bas–akor eğitim PWA'sı**. Sol elle bas çizgisi, sağ elle akor çalmayı öğrenmek isteyen bir org müzisyeni için geliştirildi.
 
