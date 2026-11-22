@@ -10,7 +10,7 @@ const compiled=source
   .replace('  <link rel="manifest" href="./manifest.webmanifest">\n','')
   .replace('  <link rel="icon" href="./icon.svg" type="image/svg+xml">\n','')
   .replace('  <link rel="stylesheet" href="./styles.css">','  <style>\n'+css+'\n  </style>')
-  .replace(/<script type="module" src="\.\/app\.mjs"><\/script>/,'<script>\n'+music+'\n'+app+'\n</script>');
+  .replace(/<script type="module" src="\.\/app\.mjs(?:\?[^\"]*)?"><\/script>/,'<script>\n'+music+'\n'+app+'\n</script>');
 if(/<script type="module"/.test(compiled)||/import\s*\{/.test(compiled))throw new Error('Demo henüz tamamen birleştirilmedi.');
 writeFileSync('basakor-akademi-demo.html',compiled);
 console.log('Demo üretildi: '+Buffer.byteLength(compiled)+' bytes');
