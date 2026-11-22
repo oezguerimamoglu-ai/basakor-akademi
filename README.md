@@ -1,4 +1,4 @@
-# 🎹 BasAkor Akademi v0.3.3
+# 🎹 BasAkor Akademi v0.3.4
 
 Türkçe, sıfır bağımlılıklı bir **Korg Pa4X bas–akor eğitim PWA'sı**. Sol elle bas çizgisi, sağ elle akor çalmayı öğrenmek isteyen bir org müzisyeni için geliştirildi.
 
@@ -6,7 +6,7 @@ Türkçe, sıfır bağımlılıklı bir **Korg Pa4X bas–akor eğitim PWA'sı**
 
 - **14 çalışma kalıbı:** 4/4, 6/8, 5/8, 7/8, 9/8, 12/8; farklı aksak ölçü gruplamaları; Em→Am, Em→B7 ve Am→Em.
 - **MIDI şarkıdan çalışma:** `.mid` dosyasını tarayıcıda açar; ölçü, tempo, track/kanal, program ve nota aralıklarını çözümler. Bas ve akor kaynaklarını seçtirip 1/2/4 ölçülük bölümü çalışma döngüsüne dönüştürür.
-- **MIDI oynatıcı:** Dosyanın tamamını çalar; başlat/duraklat, başa sar, konum, hız, kanal sessize alma ve tek kanal dinleme kontrolleri sunar. Her kanala farklı General MIDI enstrümanı atanabilir; bu değişiklik yalnızca önizleme sesini etkiler. Sesler tarayıcıda sentezlenir; dosya sunucuya gönderilmez.
+- **MIDI oynatıcı:** Dosyanın tamamını çalar; başlat/duraklat, başa sar, konum, hız, kanal sessize alma ve tek kanal dinleme kontrolleri sunar. Hedef karara transpoze dinleme seçeneği vardır; davul kanalı değişmeden kalır. Her kanala farklı General MIDI enstrümanı atanabilir; bu değişiklik yalnızca önizleme sesini etkiler. Sesler tarayıcıda sentezlenir; dosya sunucuya gönderilmez.
 - MIDI'deki kaynak kararını tahmin eder ve düzenlemene izin verir. Hedef varsayılan olarak **Mi karar**dır; bas ve akor notaları aynı aralıkla taşınır, dosyanın majör/minör ilişkisi korunur, davul kanalı transpoze edilmez.
 - Etkin piyano kanalı yoksa çok sesli bir armoni kanalı (ör. gitar veya yaylılar) akor kaynağı olarak önerilir; akor çalışması mevcut e-piyano tonlarıyla sunulur.
 - **Seviye ve kalıp seçimi:** Başlangıç, ritim kalıpları, akor geçişleri veya tüm kalıplar; ilk açılışta 14 kalıbın tamamı seçilebilir.

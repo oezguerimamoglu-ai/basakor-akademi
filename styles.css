@@ -22,6 +22,7 @@
 .midi-player{margin:14px 0;padding:16px;border:1px solid #45627a;border-radius:14px;background:#102136}
 .midi-player-head{margin:0 0 12px}.midi-player h3{margin:0;color:#e9f2ff;font-size:15px}
 .midi-player-controls{display:flex;gap:8px;flex-wrap:wrap}.midi-player-controls .btn{flex:1 1 auto;padding:10px 12px;min-height:42px}
+.midi-transpose{margin:12px 0 6px}
 .midi-seek-label{display:flex;justify-content:space-between;gap:8px;margin:14px 0 4px;color:#b8c9dc;font-size:12px}.midi-seek-label strong{color:#dce9f8;font-variant-numeric:tabular-nums}
 .midi-seek{width:100%;margin:4px 0 12px;accent-color:#9fe9c4}.midi-rate{max-width:220px}.midi-rate select{min-height:40px;padding:8px 10px}
 .midi-channel-details{margin-top:12px;color:#c8d7e9;font-size:12px}.midi-channel-details summary{cursor:pointer;font-weight:700}
