@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0c1224">
+  <meta name="description" content="Korg Pa4X için Türkçe bas–akor eğitim uygulaması. Davul, akor, MIDI ve ritim çalışmaları.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <title>BasAkor Akademi | Bas–akor ve ritim çalış</title>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand"><div class="brand-icon" aria-hidden="true">♫</div><div>BasAkor <span>Akademi</span><small>PA4X PRATİK STÜDYOSU</small></div></div>
+    <div class="pill" id="statusPill" role="status">● Hazır · v0.2.0</div>
+  </header>
+  <section class="hero">
+    <div class="eyebrow">🎹 MI KARAR İLE BAŞLA · RİTMİ KENDİN YÖNET</div>
+    <h1>Davul ritmi çalsın.<br><em>Bas ve akor sende.</em></h1>
+    <p>Hazır eşliği bırakıp basları ve akorları kendin çalmayı öğren. Ekrandaki tuşlarla çalış veya Windows bilgisayarına Korg Pa4X'i MIDI ile bağla.</p>
+  </section>
+
+  <div class="appgrid">
+    <main class="stack">
+      <section class="panel settings" aria-labelledby="heading-settings">
+        <div class="section-head"><h2 id="heading-settings"><span class="number">01</span> Çalışmayı seç</h2><span class="hint" id="levelTag">Başlangıç</span></div>
+        <div class="fields">
+          <label class="field wide" for="lesson"><span>Ders / ritim</span><select id="lesson"></select></label>
+          <div class="field"><label for="bpm"><span>Tempo <strong id="tempoValue">65 BPM</strong></span></label><input type="range" id="bpm" min="45" max="160" step="1" value="65"></div>
+          <label class="field" for="sync"><span>Davul kaynağı</span><select id="sync"><option value="app">Uygulama davulu</option><option value="clock">Pa4X davulu · MIDI Clock</option></select></label>
+        </div>
+        <div class="switches"><label class="check"><input id="demo" type="checkbox"><span>Bas–akor örneğini de çal</span></label><label class="check"><input id="strict" type="checkbox"><span>Bas oktavını kontrol et</span></label></div>
+        <div class="transport"><button id="play" class="btn primary">▶ Başlat</button><button id="stop" class="btn secondary" disabled>■ Durdur</button><button id="tap" class="btn outline" title="Tempo ayarla">Tempo tut</button></div>
+        <p class="meta" id="sourceHint">Uygulama kendi davulunu çalar. Ses için Başlat'a dokun.</p>
+      </section>
+
+      <section class="panel stage" aria-labelledby="heading-stage">
+        <div class="section-head"><h2 id="heading-stage"><span class="number">02</span> Ritmi takip et</h2><span class="hint" id="meterTag">4/4 · Düz ritim</span></div>
+        <div class="nowbox">
+          <div class="nowhead"><span id="measure">Ölçü 1</span><span id="measureProgress">1 / 8</span></div>
+          <div class="nextlabel">ŞİMDİ ÇAL</div>
+          <div class="actionline"><span class="actiontype" id="actionType">BAS</span><strong id="actionNote">Mİ</strong><span class="actiondetail" id="actionDetail">E2</span></div>
+          <p id="lessonDescription" class="nowdescription"></p>
+        </div>
+        <div class="barhead"><strong>Vuruş haritası</strong><span id="grouping">1 + 1 + 1 + 1</span></div>
+        <div class="beatgrid" id="beats" aria-label="Ritim adımları"></div>
+        <div class="feedback" id="feedback" role="status" aria-live="polite">Başlat'a bas ve ilk vuruşta kalın Mi çal.</div>
+        <div class="legend"><span><i class="dot bassdot"></i> Bas</span><span><i class="dot chorddot"></i> Akor</span><span><i class="dot restdot"></i> Es</span></div>
+      </section>
+
+      <section class="panel pads" aria-labelledby="heading-pads">
+        <div class="section-head"><h2 id="heading-pads"><span class="number">03</span> Buradan da çal</h2><span class="hint">Dokunmatik çalışma</span></div>
+        <p class="subtle">Davul vuruşuna denk gelecek şekilde doğru bas veya akor tuşuna dokun. Bilgisayarda fare veya klavye ile de çalışabilirsin.</p>
+        <div class="padgrid" id="pads"></div>
+        <div class="barhead keyboardHead"><strong>Sol elin için nota rehberi</strong><span>MIDI numaraları gösterilir</span></div>
+        <div class="keyboardwrap"><div id="keyboard" class="keyboard" aria-label="Piyano klavyesi görseli"></div></div>
+        <p class="meta">🎵 Ekrandaki akor tuşları üç veya dört notayı birlikte çalar. Gerçek Pa4X'te bunları kendin aynı anda basmalısın.</p>
+      </section>
+    </main>
+
+    <aside class="stack">
+      <section class="panel performance" aria-labelledby="heading-progress">
+        <div class="section-head"><h2 id="heading-progress">🏁 İlerlemem</h2><span class="hint" id="goal">Hedef: 8 ölçü</span></div>
+        <div class="scorebar"><div id="progressFill" class="scorefill"></div></div>
+        <div class="scoregrid"><div class="score"><strong id="success">0</strong><span>Doğru</span></div><div class="score"><strong id="mistakes">0</strong><span>Hata / kaçan</span></div><div class="score"><strong id="accuracy">–</strong><span>Başarı</span></div></div>
+        <p id="completedMessage" class="meta">Sekiz ölçü çalışıp sonuçlarını gör.</p>
+        <button id="reset" class="textbtn">Bu dersin kaydını sıfırla</button>
+      </section>
+      <section class="panel midi" aria-labelledby="heading-midi">
+        <div class="section-head"><h2 id="heading-midi">🔌 Pa4X bağlantısı</h2><span class="hint">Windows · Chrome / Edge</span></div>
+        <button id="connect" class="btn secondary full">MIDI bağlantısını aç</button>
+        <div id="midiStatus" class="device-status">Henüz MIDI bağlantısı yok. Ekrandaki bas–akor tuşlarıyla hemen çalışabilirsin.</div>
+        <label class="field" for="device"><span>MIDI giriş cihazı</span><select id="device" disabled><option value="">Bağlı cihaz yok</option></select></label>
+        <div class="fields two"><label class="field" for="channel"><span>Giriş kanalı</span><select id="channel"><option value="all">Tümü</option></select></label><label class="field" for="maxnote"><span>En yüksek nota</span><select id="maxnote"><option value="59">B3 (59)</option><option value="60">C4 (60)</option><option value="64">E4 (64)</option><option value="127">Sınırsız</option></select></label></div>
+        <div class="midimonitor"><span>Son MIDI notası</span><strong id="midiLast">–</strong><span id="clockStatus">MIDI Clock beklenmiyor</span></div>
+        <details><summary>Pa4X bağlantı adımları</summary><ol><li>USB DEVICE (B tipi) portunu Windows bilgisayarına bağla.</li><li>Gerekirse Korg USB-MIDI sürücüsünü kur.</li><li>Bu sayfayı Chrome veya Edge'de HTTPS/localhost üzerinden aç.</li><li>“MIDI bağlantısını aç” seç, ardından Pa4X'te sol elinle tuşlara bas.</li><li>Pa4X davulunu kullanacaksan <b>Global → MIDI → General Controls → Clock Send</b> seçeneğini etkinleştir. Cihaz her açıldığında yeniden kontrol et.</li><li>Yanlış kanal veya üst el notaları gelirse kanal ve en yüksek nota sınırını değiştir.</li></ol></details>
+      </section>
+      <section class="panel help" aria-labelledby="heading-help">
+        <h2 id="heading-help">📖 Ders notu</h2>
+        <ul class="instructions" id="instructions"></ul>
+        <p class="meta">“Mi karar” her zaman Mi minör demek değildir. Buradaki Em/Am/B7 dersleri el koordinasyonu içindir; makam derslerini ayrıca geliştireceğiz.</p>
+      </section>
+      <section class="panel tips"><h2>💡 Nasıl çalışmalı?</h2><p>Önce 65 BPM'de 8 ölçü boyunca yalnızca sol eli kullan. %80 başarıya ulaştığında tempoyu artır. Sağ el melodisini sonraki aşamada ekle.</p></section>
+    </aside>
+  </div>
+  <footer>BasAkor Akademi v0.2.0 · Veriler bu cihazın tarayıcısında saklanır · Sesler sentetiktir · Pa4X MIDI Clock özelliği cihazda henüz test edilmedi.</footer>
+</div>
+<script type="module" src="./app.mjs"></script>
+</body>
+</html>

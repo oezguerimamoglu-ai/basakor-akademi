@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0c1224">
+  <meta name="description" content="Korg Pa4X için Türkçe bas–akor eğitim uygulaması. Davul, akor, MIDI ve ritim çalışmaları.">
+  <style>
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#f0f4fc;background:#0c1224;font-synthesis:none}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;background:radial-gradient(ellipse 900px 500px at 91% -10%,rgba(64,95,165,.26),transparent),radial-gradient(ellipse 600px 350px at -15% 17%,rgba(36,131,122,.12),transparent),#0c1224}button,select,input{font:inherit}button{cursor:pointer}button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #9af3c2;outline-offset:3px}button:disabled{cursor:not-allowed;opacity:.48}
+.shell{max-width:1270px;margin:auto;padding:20px 22px 35px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:850;letter-spacing:-.6px}.brand span{color:#a3edc4}.brand small{display:block;font-size:9px;letter-spacing:1.6px;color:#8ea1be;margin-top:2px}.brand-icon{background:linear-gradient(135deg,#9ef3c5,#69beaf);color:#092a2a;border-radius:13px;display:grid;place-items:center;height:44px;width:44px;font-size:29px}.pill{border:1px solid #40516c;border-radius:30px;padding:9px 13px;color:#c2cedd;font-size:12px;white-space:nowrap}.pill.playing{border-color:#4f9b83;color:#9af3c2}.hero{padding:35px 0 26px;max-width:780px}.eyebrow{color:#9fe9c4;letter-spacing:1.7px;font-weight:800;font-size:11px;margin-bottom:14px}.hero h1{font-size:clamp(30px,5vw,53px);line-height:1.1;letter-spacing:-1.6px;margin:0}.hero h1 em{font-style:normal;color:#a7f4c7}.hero p{color:#b2bfd5;line-height:1.7;max-width:730px;font-size:15px;margin:14px 0 0}.appgrid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:17px}.stack{display:flex;flex-direction:column;gap:17px;min-width:0}.panel{padding:23px;background:rgba(23,32,54,.94);border:1px solid #34425b;border-radius:21px;box-shadow:0 12px 30px rgba(3,9,22,.18)}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:19px}.panel h2{font-size:17px;letter-spacing:-.25px;margin:0}.number{color:#90e5bd;font-size:13px;letter-spacing:.3px;margin-right:4px}.hint{font-size:11px;color:#9aacbf}.fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}.fields .wide{grid-column:1/-1}.fields.two{margin-top:12px}.field{min-width:0;display:block}.field>span,.field label>span{display:flex;justify-content:space-between;color:#b5c5dd;font-size:12px;font-weight:650;margin-bottom:9px}.field strong{color:#a6efc9}.field select{width:100%;background:#111a30;border:1px solid #4b5c7a;border-radius:10px;color:#edf4ff;padding:12px 10px;min-height:47px}.field input[type=range]{display:block;width:100%;margin:18px 0;accent-color:#a6edc1}.switches{display:flex;gap:18px;flex-wrap:wrap;margin-top:17px}.check{display:flex;align-items:center;gap:7px;font-size:12px;color:#c4d1e5}.check input{accent-color:#9be4bc;width:17px;height:17px}.transport{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}.btn{border:0;border-radius:12px;padding:14px 20px;font-weight:800;display:inline-flex;justify-content:center;align-items:center;min-height:46px;gap:8px}.btn.primary{color:#102e32;background:#a5edc7}.btn.secondary{color:#f2f6ff;background:#344461}.btn.outline{background:transparent;color:#cad8ed;border:1px solid #50617e}.btn.full{width:100%}.meta{font-size:12px;color:#98a9c2;line-height:1.6;margin:13px 0 0}.subtle{font-size:13px;line-height:1.6;color:#adbed2;margin:-5px 0 18px}
+.nowbox{background:linear-gradient(125deg,#142b3d,#15243d);border:1px solid #395e68;border-radius:17px;padding:20px 21px;margin-bottom:23px}.nowhead{display:flex;justify-content:space-between;color:#b8cce2;font-size:12px;margin-bottom:17px}.nextlabel{font-size:10px;font-weight:900;letter-spacing:2px;color:#8abfbd}.actionline{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:7px 0}.actiontype{border-radius:7px;background:#295c86;color:#c9eeff;padding:6px 10px;font-size:11px;letter-spacing:1px;font-weight:800}.actiontype.chord{background:#65502d;color:#ffe2b2}.actiontype.rest{background:#3f4a62}.actionline strong{font-size:clamp(26px,4.4vw,44px);letter-spacing:-1px}.actiondetail{font-size:15px;color:#a6c0d9}.nowdescription{font-size:13px;line-height:1.65;color:#bbcbdd;margin:10px 0 0}.barhead{display:flex;justify-content:space-between;gap:10px;align-items:center;color:#d5e2f2;font-size:12px;margin:0 0 12px}.barhead span{color:#9eafc9}.beatgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.beatgrid.long{grid-template-columns:repeat(var(--cols),minmax(0,1fr))}.beat{display:flex;flex-direction:column;align-items:center;justify-content:space-around;min-height:108px;padding:9px 4px;border-radius:12px;background:#111c33;border:1px solid #445673;text-align:center;position:relative;transition:background .13s,transform .13s,border-color .13s}.beat:before{content:"";position:absolute;top:-8px;left:0;right:0;margin:auto;width:1px;height:6px;background:#6d7d9c;opacity:.45}.beat.group-start:before{background:#d7efb7;width:3px;opacity:1}.beat .ord{font-size:23px;font-weight:850}.beat .type{font-weight:800;letter-spacing:.7px;font-size:10px;color:#9cacc9}.beat .note{font-size:11px;color:#e5effb}.beat.bass .type{color:#9cccff}.beat.chord .type{color:#ffcf91}.beat.rest{opacity:.55}.beat.active{transform:translateY(-3px);border-color:#a9f2d3;background:#28455c}.beat.hit{box-shadow:inset 0 0 0 2px rgba(166,241,194,.65)}.beat.miss{box-shadow:inset 0 0 0 2px rgba(254,131,111,.54)}.feedback{border:1px solid #4e607b;background:#0e1c31;padding:14px 15px;border-radius:13px;color:#c7d7eb;font-size:13px;line-height:1.55;min-height:50px;margin-top:18px}.feedback.good{border-color:#368c70;color:#a4f7c7}.feedback.bad{border-color:#b66b65;color:#ffccbf}.legend{display:flex;justify-content:flex-end;gap:13px;margin-top:12px;font-size:11px;color:#abbcd3}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px}.bassdot{background:#8cbfff}.chorddot{background:#f9c47d}.restdot{background:#8b97ae}
+.padgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.pad{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:9px;min-height:95px;border:1px solid #557ca5;border-radius:14px;color:#f5f9ff;background:#213852;font-size:19px;font-weight:850;touch-action:manipulation;transition:transform .12s}.pad:active{transform:scale(.96)}.pad.chord{background:#4e3d2b;border-color:#9b7a4d}.pad small{font-size:11px;color:#c4d4e5;font-weight:500;max-width:95%;text-align:center}.keyboardHead{margin:26px 0 12px}.keyboardwrap{overflow-x:auto;padding:0 3px 9px}.keyboard{display:flex;position:relative;height:125px;min-width:620px;user-select:none;touch-action:pan-x}.key.white{position:relative;background:linear-gradient(#fff,#e2e7ef);border:1px solid #8a99ac;border-radius:0 0 5px 5px;flex:1;min-width:17px;color:#44526e;z-index:0}.key.black{position:absolute;z-index:2;top:0;height:76px;width:3.3%;background:linear-gradient(#111b2c,#25374f);border:1px solid #080f1f;border-radius:0 0 4px 4px;pointer-events:none}.key.white.on{background:#a4eaca}.key.black.on{background:#3b9d89}.key.white.expect{background:#dfd5a7}.key.black.expect{background:#b98751}.key-label{position:absolute;bottom:7px;left:1px;right:1px;text-align:center;font-size:9px;font-weight:800}.key-id{position:absolute;bottom:21px;left:0;right:0;text-align:center;font-size:9px;color:#71819c}
+.scorebar{height:8px;border-radius:99px;overflow:hidden;background:#0c182c;border:1px solid #354861}.scorefill{height:100%;width:0%;background:linear-gradient(90deg,#399b8b,#a4eaba);transition:width .2s}.scoregrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:18px 0 10px}.score{text-align:center;padding:12px 4px;background:#101d31;border-radius:10px}.score strong{display:block;font-size:25px;font-variant-numeric:tabular-nums}.score span{display:block;font-size:10px;color:#9dacbf;margin-top:5px}.textbtn{border:0;padding:8px 0 0;background:none;color:#a9efcc;font-size:12px;text-decoration:underline}.device-status{margin:14px 0;border-radius:12px;border:1px solid #465775;background:#101e33;color:#bfcbdf;padding:12px;font-size:12px;line-height:1.6}.midi .field{margin:13px 0 0}.midimonitor{border:1px dashed #4b5971;border-radius:12px;margin-top:14px;padding:13px;display:flex;flex-direction:column;gap:6px}.midimonitor span{font-size:11px;color:#aebed5}.midimonitor strong{font-size:17px}details{margin-top:15px;border-top:1px solid #33425d;padding-top:15px;color:#bbcbdb;font-size:12px;line-height:1.7}summary{cursor:pointer;font-weight:750;color:#c4e1f4}details ol{padding-left:19px}details li{margin:7px 0}.instructions{list-style:none;padding:0;margin:0}.instructions li{font-size:13px;padding:9px 0;border-bottom:1px solid #34415a;color:#d3dfec;line-height:1.5}.instructions .highlight{color:#a5edc6;font-weight:800}.tips p{color:#aabbd1;font-size:13px;line-height:1.7;margin:12px 0 0}footer{font-size:11px;color:#879bb6;margin:27px 4px 10px;line-height:1.6}
+@media(max-width:970px){.appgrid{grid-template-columns:1fr}.appgrid>.stack:last-child{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.midi{grid-row:span 2}}
+@media(max-width:650px){.shell{padding:16px 12px 25px}.hero{padding:30px 0 22px}.hero p{font-size:13px}.panel{padding:18px;border-radius:17px}.fields{grid-template-columns:1fr}.fields.two{grid-template-columns:repeat(2,minmax(0,1fr))}.appgrid>.stack:last-child{display:flex}.transport .btn{flex:1;padding:12px 11px;font-size:12px}.beatgrid{gap:5px}.beat{min-height:92px;padding:7px 1px}.beat .ord{font-size:17px}.beat .note{font-size:9px}.beat .type{font-size:8px}.beatgrid.long{gap:3px}.beatgrid.long .beat{border-radius:7px;min-height:85px}.beatgrid.long .beat .ord{font-size:12px}.beatgrid.long .beat .note,.beatgrid.long .beat .type{font-size:8px}.pad{min-height:85px;font-size:17px}.pill{font-size:10px}.brand{font-size:17px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important}}
+
+  </style>
+  <title>BasAkor Akademi | Bas–akor ve ritim çalış</title>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand"><div class="brand-icon" aria-hidden="true">♫</div><div>BasAkor <span>Akademi</span><small>PA4X PRATİK STÜDYOSU</small></div></div>
+    <div class="pill" id="statusPill" role="status">● Hazır · v0.2.0</div>
+  </header>
+  <section class="hero">
+    <div class="eyebrow">🎹 MI KARAR İLE BAŞLA · RİTMİ KENDİN YÖNET</div>
+    <h1>Davul ritmi çalsın.<br><em>Bas ve akor sende.</em></h1>
+    <p>Hazır eşliği bırakıp basları ve akorları kendin çalmayı öğren. Ekrandaki tuşlarla çalış veya Windows bilgisayarına Korg Pa4X'i MIDI ile bağla.</p>
+  </section>
+
+  <div class="appgrid">
+    <main class="stack">
+      <section class="panel settings" aria-labelledby="heading-settings">
+        <div class="section-head"><h2 id="heading-settings"><span class="number">01</span> Çalışmayı seç</h2><span class="hint" id="levelTag">Başlangıç</span></div>
+        <div class="fields">
+          <label class="field wide" for="lesson"><span>Ders / ritim</span><select id="lesson"></select></label>
+          <div class="field"><label for="bpm"><span>Tempo <strong id="tempoValue">65 BPM</strong></span></label><input type="range" id="bpm" min="45" max="160" step="1" value="65"></div>
+          <label class="field" for="sync"><span>Davul kaynağı</span><select id="sync"><option value="app">Uygulama davulu</option><option value="clock">Pa4X davulu · MIDI Clock</option></select></label>
+        </div>
+        <div class="switches"><label class="check"><input id="demo" type="checkbox"><span>Bas–akor örneğini de çal</span></label><label class="check"><input id="strict" type="checkbox"><span>Bas oktavını kontrol et</span></label></div>
+        <div class="transport"><button id="play" class="btn primary">▶ Başlat</button><button id="stop" class="btn secondary" disabled>■ Durdur</button><button id="tap" class="btn outline" title="Tempo ayarla">Tempo tut</button></div>
+        <p class="meta" id="sourceHint">Uygulama kendi davulunu çalar. Ses için Başlat'a dokun.</p>
+      </section>
+
+      <section class="panel stage" aria-labelledby="heading-stage">
+        <div class="section-head"><h2 id="heading-stage"><span class="number">02</span> Ritmi takip et</h2><span class="hint" id="meterTag">4/4 · Düz ritim</span></div>
+        <div class="nowbox">
+          <div class="nowhead"><span id="measure">Ölçü 1</span><span id="measureProgress">1 / 8</span></div>
+          <div class="nextlabel">ŞİMDİ ÇAL</div>
+          <div class="actionline"><span class="actiontype" id="actionType">BAS</span><strong id="actionNote">Mİ</strong><span class="actiondetail" id="actionDetail">E2</span></div>
+          <p id="lessonDescription" class="nowdescription"></p>
+        </div>
+        <div class="barhead"><strong>Vuruş haritası</strong><span id="grouping">1 + 1 + 1 + 1</span></div>
+        <div class="beatgrid" id="beats" aria-label="Ritim adımları"></div>
+        <div class="feedback" id="feedback" role="status" aria-live="polite">Başlat'a bas ve ilk vuruşta kalın Mi çal.</div>
+        <div class="legend"><span><i class="dot bassdot"></i> Bas</span><span><i class="dot chorddot"></i> Akor</span><span><i class="dot restdot"></i> Es</span></div>
+      </section>
+
+      <section class="panel pads" aria-labelledby="heading-pads">
+        <div class="section-head"><h2 id="heading-pads"><span class="number">03</span> Buradan da çal</h2><span class="hint">Dokunmatik çalışma</span></div>
+        <p class="subtle">Davul vuruşuna denk gelecek şekilde doğru bas veya akor tuşuna dokun. Bilgisayarda fare veya klavye ile de çalışabilirsin.</p>
+        <div class="padgrid" id="pads"></div>
+        <div class="barhead keyboardHead"><strong>Sol elin için nota rehberi</strong><span>MIDI numaraları gösterilir</span></div>
+        <div class="keyboardwrap"><div id="keyboard" class="keyboard" aria-label="Piyano klavyesi görseli"></div></div>
+        <p class="meta">🎵 Ekrandaki akor tuşları üç veya dört notayı birlikte çalar. Gerçek Pa4X'te bunları kendin aynı anda basmalısın.</p>
+      </section>
+    </main>
+
+    <aside class="stack">
+      <section class="panel performance" aria-labelledby="heading-progress">
+        <div class="section-head"><h2 id="heading-progress">🏁 İlerlemem</h2><span class="hint" id="goal">Hedef: 8 ölçü</span></div>
+        <div class="scorebar"><div id="progressFill" class="scorefill"></div></div>
+        <div class="scoregrid"><div class="score"><strong id="success">0</strong><span>Doğru</span></div><div class="score"><strong id="mistakes">0</strong><span>Hata / kaçan</span></div><div class="score"><strong id="accuracy">–</strong><span>Başarı</span></div></div>
+        <p id="completedMessage" class="meta">Sekiz ölçü çalışıp sonuçlarını gör.</p>
+        <button id="reset" class="textbtn">Bu dersin kaydını sıfırla</button>
+      </section>
+      <section class="panel midi" aria-labelledby="heading-midi">
+        <div class="section-head"><h2 id="heading-midi">🔌 Pa4X bağlantısı</h2><span class="hint">Windows · Chrome / Edge</span></div>
+        <button id="connect" class="btn secondary full">MIDI bağlantısını aç</button>
+        <div id="midiStatus" class="device-status">Henüz MIDI bağlantısı yok. Ekrandaki bas–akor tuşlarıyla hemen çalışabilirsin.</div>
+        <label class="field" for="device"><span>MIDI giriş cihazı</span><select id="device" disabled><option value="">Bağlı cihaz yok</option></select></label>
+        <div class="fields two"><label class="field" for="channel"><span>Giriş kanalı</span><select id="channel"><option value="all">Tümü</option></select></label><label class="field" for="maxnote"><span>En yüksek nota</span><select id="maxnote"><option value="59">B3 (59)</option><option value="60">C4 (60)</option><option value="64">E4 (64)</option><option value="127">Sınırsız</option></select></label></div>
+        <div class="midimonitor"><span>Son MIDI notası</span><strong id="midiLast">–</strong><span id="clockStatus">MIDI Clock beklenmiyor</span></div>
+        <details><summary>Pa4X bağlantı adımları</summary><ol><li>USB DEVICE (B tipi) portunu Windows bilgisayarına bağla.</li><li>Gerekirse Korg USB-MIDI sürücüsünü kur.</li><li>Bu sayfayı Chrome veya Edge'de HTTPS/localhost üzerinden aç.</li><li>“MIDI bağlantısını aç” seç, ardından Pa4X'te sol elinle tuşlara bas.</li><li>Pa4X davulunu kullanacaksan <b>Global → MIDI → General Controls → Clock Send</b> seçeneğini etkinleştir. Cihaz her açıldığında yeniden kontrol et.</li><li>Yanlış kanal veya üst el notaları gelirse kanal ve en yüksek nota sınırını değiştir.</li></ol></details>
+      </section>
+      <section class="panel help" aria-labelledby="heading-help">
+        <h2 id="heading-help">📖 Ders notu</h2>
+        <ul class="instructions" id="instructions"></ul>
+        <p class="meta">“Mi karar” her zaman Mi minör demek değildir. Buradaki Em/Am/B7 dersleri el koordinasyonu içindir; makam derslerini ayrıca geliştireceğiz.</p>
+      </section>
+      <section class="panel tips"><h2>💡 Nasıl çalışmalı?</h2><p>Önce 65 BPM'de 8 ölçü boyunca yalnızca sol eli kullan. %80 başarıya ulaştığında tempoyu artır. Sağ el melodisini sonraki aşamada ekle.</p></section>
+    </aside>
+  </div>
+  <footer>BasAkor Akademi v0.2.0 · Veriler bu cihazın tarayıcısında saklanır · Sesler sentetiktir · Pa4X MIDI Clock özelliği cihazda henüz test edilmedi.</footer>
+</div>
+<script>
+// BasAkor Akademi — saf müzik/puanlama işlevleri; DOM veya cihaz bağımlılığı yok.
+const VERSION = '0.2.0';
+
+const step=(kind,label,notes,options={})=>({kind,label,notes,...options});
+const LESSONS = [
+  {
+    id:'em-44', level:1, title:'Mi minör · İlk adım', meter:'4/4', grouping:[1,1,1,1], denominator:4,
+    description:'DUM–ÇAK–DUM–ÇAK. Birinci ve üçüncü vuruşta bas; ikinci ve dördüncüde akor.',
+    defaultBpm:65, accent:[0,2],
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]})]
+  },
+  {
+    id:'em-44-variation', level:2, title:'4/4 · İkinci vuruş', meter:'4/4', grouping:[1,1,1,1], denominator:4,
+    description:'Mi basıyla başla, ikinci bası Si’ye kaydır; düzeni 8 ölçü boyunca koru.',defaultBpm:85,accent:[0,2],
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]})]
+  },
+  {
+    id:'em-98',level:3,title:'9/8 · 2+2+2+3',meter:'9/8',grouping:[2,2,2,3],denominator:8,
+    description:'Dokuz sekizlik: 2+2+2+3. Bu sadece koordinasyon kalıbıdır; yöresel ritim iddiası yoktur.',defaultBpm:90,accent:[0,2,4,6],
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('rest','ES','–'),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('rest','ES','–'),step('bass','Sİ','B1',{midi:[35]}),step('rest','ES','–'),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('rest','ES','–'),step('rest','ES','–')]
+  },
+  {
+    id:'em-78',level:4,title:'7/8 · 2+2+3',meter:'7/8',grouping:[2,2,3],denominator:8,
+    description:'Yedi sekizlik sayımı: 1-2 / 1-2 / 1-2-3. Son grubun uzunluğunu hisset.',defaultBpm:90,accent:[0,2,4],
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('rest','ES','–'),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('rest','ES','–'),step('bass','Sİ','B1',{midi:[35]}),step('rest','ES','–'),step('chord','Em','E3–G3–B3',{midi:[52,55,59]})]
+  },
+  {
+    id:'em-58',level:5,title:'5/8 · 2+3',meter:'5/8',grouping:[2,3],denominator:8,
+    description:'Beş sekizlik sayımı: 1-2 / 1-2-3. Bas ve akor sırasını kaybetme.',defaultBpm:90,accent:[0,2],
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('rest','ES','–'),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('rest','ES','–'),step('chord','Em','E3–G3–B3',{midi:[52,55,59]})]
+  },
+  {
+    id:'em-am',level:6,title:'Em → Am · Akor değişimi',meter:'4/4',grouping:[1,1,1,1],denominator:4,
+    description:'Bir ölçü Em, ardından bir ölçü Am. Bas ve akoru beraber değiştir.',defaultBpm:65,accent:[0,2],
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]})],
+    alternate:[step('bass','LA','A1',{midi:[33]}),step('chord','Am','A2–C3–E3',{midi:[45,48,52]}),step('bass','Mİ','E2',{midi:[40]}),step('chord','Am','A2–C3–E3',{midi:[45,48,52]})]
+  },
+  {
+    id:'em-b7',level:7,title:'Em → B7 · Dönüş',meter:'4/4',grouping:[1,1,1,1],denominator:4,
+    description:'Em ve B7 arasında iki ölçülük alıştırma. B7 için dört ses gereklidir.',defaultBpm:60,accent:[0,2],
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]})],
+    alternate:[step('bass','Sİ','B1',{midi:[35]}),step('chord','B7','B2–D♯3–F♯3–A3',{midi:[47,51,54,57]}),step('bass','FA♯','F♯2',{midi:[42]}),step('chord','B7','B2–D♯3–F♯3–A3',{midi:[47,51,54,57]})]
+  }
+];
+
+const getLesson = id=>LESSONS.find(l=>l.id===id)||LESSONS[0];
+const getSteps = (lesson, measure=0)=>lesson.alternate && measure%2===1 ? lesson.alternate : lesson.steps;
+const msPerStep = (bpm,denominator=4)=>60000/Math.max(1,bpm)*(4/denominator);
+const noteName = n => {
+  const names=['Do','Do♯','Re','Re♯','Mi','Fa','Fa♯','Sol','Sol♯','La','La♯','Si'];
+  return names[((n%12)+12)%12]+(Math.floor(n/12)-1);
+};
+const pitchClass=n=>((n%12)+12)%12;
+const expectedMidi = event=>Array.isArray(event?.midi)?event.midi:[];
+
+// Bas için nota sınıfı ve yaklaşık oktav, akor için tüm bileşen sesler gerekir.
+function matchEvent(expected, actual, {strictBassOctave=false}={}) {
+  if (!expected || expected.kind==='rest') return {ok:false,reason:'es'};
+  if (!Array.isArray(actual) || actual.length===0) return {ok:false,reason:'empty'};
+  if(expected.kind==='bass') {
+    if(actual.length!==1) return {ok:false,reason:'one-note'};
+    const samePitch=pitchClass(actual[0])===pitchClass(expected.midi[0]);
+    const sameRange=actual[0]===expected.midi[0];
+    return {ok:samePitch && (!strictBassOctave||sameRange),reason:!samePitch?'wrong-note':!sameRange&&strictBassOctave?'wrong-octave':'ok'};
+  }
+  if(expected.kind==='chord') {
+    const need=new Set(expected.midi.map(pitchClass));
+    const have=new Set(actual.map(pitchClass));
+    const ok=need.size===have.size && [...need].every(pc=>have.has(pc));
+    return {ok,reason:ok?'ok':'wrong-chord'};
+  }
+  return {ok:false,reason:'unknown'};
+}
+
+function nearestStep({eventMs,originMs,stepMs,stepsPerMeasure}){
+  if(!Number.isFinite(eventMs)||!Number.isFinite(originMs)||!Number.isFinite(stepMs)||stepMs<=0) return null;
+  const fractional=(eventMs-originMs)/stepMs;
+  const absolute=Math.round(fractional);
+  if(absolute<0) return null;
+  const deviationMs=(fractional-absolute)*stepMs;
+  return {absolute,measure:Math.floor(absolute/stepsPerMeasure),step:absolute%stepsPerMeasure,deviationMs};
+}
+
+function timingGrade(deltaMs,stepMs){
+  const d=Math.abs(deltaMs);
+  if(d<=Math.min(140,stepMs*.20))return 'perfect';
+  if(d<=Math.min(250,stepMs*.39))return 'close';
+  return 'off';
+}
+
+function currentEvent(lesson,absolute) {
+  const measure=Math.floor(absolute/lesson.steps.length);
+  return getSteps(lesson,measure)[absolute%lesson.steps.length];
+}
+
+function countableEvents(lesson,measureCount){let n=0;for(let i=0;i<measureCount;i++)n+=getSteps(lesson,i).filter(s=>s.kind!=='rest').length;return n;}
+
+const $ = id=>document.getElementById(id);
+const KEY='basakor-akademi-progress-v2';
+const runLength=8;
+const state={
+  lesson:LESSONS[0],bpm:65,mode:'app',ctx:null,playing:false,waitingClock:false,demo:false,strict:false,
+  originMs:0,audioStart:0,nextScheduled:0,timer:null,raf:null,sessionId:0,
+  evaluated:new Map(),nextMiss:0,hits:0,misses:0,judged:0,visualBeat:-1,
+  midi:null,midiInput:null,midiCluster:null,midiClusterTimer:null,midiNotes:new Map(),
+  clock:{armed:false,running:false,ticks:0,lastTickMs:0,avgTickMs:0,pulseTimes:[],sourceId:null},
+  tapTimes:[],records:{},mutedPage:false
+};
+try{const old=JSON.parse(localStorage.getItem(KEY)||'{}');if(old&&typeof old==='object')state.records=old;}catch{}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state.records));}catch{}};
+
+// Web Audio — ağdan ses dosyası indirmez; bağlantısız çalışır.
+function audio(){if(!state.ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)throw new Error('Tarayıcın ses üretimini desteklemiyor.');state.ctx=new C();}return state.ctx;}
+function oscillator(freq,t,length,volume,type='sine'){
+  if(!state.ctx)return;const c=state.ctx,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.0002,volume),t+.014);g.gain.exponentialRampToValueAtTime(.0001,t+length);o.connect(g).connect(c.destination);o.start(t);o.stop(t+length+.018);
+}
+function toneFromMidi(note,t,length=.24,volume=.12,type='triangle') {oscillator(440*Math.pow(2,(note-69)/12),t,length,volume,type)}
+function playNotes(notes,at=null){try{const c=audio();const t=at??c.currentTime+.002;notes.forEach((n,i)=>toneFromMidi(n,t+i*.004,notes.length>1?.26:.30,notes.length>1?.06:.16,notes.length>1?'triangle':'sine'));}catch{}}
+function kick(t){const c=state.ctx,o=c.createOscillator(),g=c.createGain();o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(44,t+.14);g.gain.setValueAtTime(.28,t);g.gain.exponentialRampToValueAtTime(.0001,t+.17);o.connect(g).connect(c.destination);o.start(t);o.stop(t+.19)}
+function noise(t,duration=.06,level=.075,cutoff=2300){const c=state.ctx,size=Math.ceil(c.sampleRate*duration),buffer=c.createBuffer(1,size,c.sampleRate),d=buffer.getChannelData(0);for(let i=0;i<size;i++)d[i]=Math.random()*2-1;const o=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();o.buffer=buffer;f.type='highpass';f.frequency.value=cutoff;g.gain.setValueAtTime(level,t);g.gain.exponentialRampToValueAtTime(.0001,t+duration);o.connect(f).connect(g).connect(c.destination);o.start(t);o.stop(t+duration+.001)}
+function drums(t,step){const l=state.lesson;const start=l.accent.includes(step);const strong=step===0;
+  if(strong || (l.denominator===4&&step===2) || (l.denominator===8&&step===4))kick(t);
+  if(!strong && (l.denominator===4 ? step%2===1 : start))noise(t,.095,.11,1400);
+  noise(t,.035,start?.04:.021,4200);
+}
+function setFeedback(message,type=''){const el=$('feedback');el.className='feedback'+(type?' '+type:'');el.textContent=message;}
+function setStatus(message,playing=false){$('statusPill').textContent=message;$('statusPill').classList.toggle('playing',playing)}
+function showMeasure(num){$('measure').textContent=`Ölçü ${num+1}`;$('measureProgress').textContent=`${Math.min(num+1,runLength)} / ${runLength}`;}
+function describeExpected(expected){if(!expected)return;$('actionType').textContent=expected.kind==='bass'?'BAS':expected.kind==='chord'?'AKOR':'ES';$('actionType').className='actiontype '+expected.kind;$('actionNote').textContent=expected.label;$('actionDetail').textContent=expected.notes;const activeNotes=expected.midi||[];document.querySelectorAll('.key').forEach(key=>key.classList.toggle('expect',activeNotes.includes(Number(key.dataset.note))));}
+function lessonMarkup(){const l=state.lesson;$('meterTag').textContent=`${l.meter} · ${l.grouping.join('+')}`;$('levelTag').textContent=`Ders ${l.level} / ${LESSONS.length}`;$('lessonDescription').textContent=l.description;$('grouping').textContent=l.grouping.join(' + ');
+  const hints=l.steps.map((s,i)=>`<li><span class="highlight">${i+1}. vuruş:</span> ${s.kind==='rest'?'Es (çalma)':s.kind==='bass'?`${s.label} bas · ${s.notes}`:`${s.label} akor · ${s.notes}`}</li>`);
+  $('instructions').innerHTML=hints.join('');
+  drawBeats(0);renderPads();showMeasure(0);describeExpected(l.steps[0]);updateScore();
+}
+function drawBeats(measure){const l=state.lesson,steps=getSteps(l,measure);const beatArea=$('beats');beatArea.style.setProperty('--cols',steps.length);beatArea.className='beatgrid'+(steps.length>4?' long':'');let groupStart=0;const starts=new Set(l.grouping.map(group=>{const i=groupStart;groupStart+=group;return i;}));
+  beatArea.innerHTML=steps.map((s,i)=>`<div class="beat ${s.kind} ${starts.has(i)?'group-start':''}" id="beat-${i}" data-step="${i}"><div class="ord">${i+1}</div><div class="type">${s.kind==='bass'?'BAS':s.kind==='chord'?'AKOR':'ES'}</div><div class="note">${s.label}</div></div>`).join('');
+}
+function relevantPads(){const actions=new Map();for(const e of [...state.lesson.steps,...(state.lesson.alternate||[])])if(e.kind!=='rest')actions.set(e.kind+':'+e.midi.join(','),e);return [...actions.values()];}
+function renderPads(){const items=relevantPads();$('pads').innerHTML=items.map((s,i)=>`<button class="pad ${s.kind}" data-index="${i}" aria-label="${s.kind==='bass'?'Bas':'Akor'} ${s.label}">${s.label}<small>${s.kind==='bass'?'BAS':'AKOR'} · ${s.notes}</small></button>`).join('');
+  $('pads').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{const e=items[Number(b.dataset.index)];playNotes(e.midi);evaluate(e.midi,performance.now(),'ekran');flashKeys(e.midi)}));
+}
+function drawKeyboard(){const board=$('keyboard');const low=33,high=71;const whites=[];for(let n=low;n<=high;n++)if(![1,3,6,8,10].includes(n%12))whites.push(n);
+  board.innerHTML=whites.map(n=>`<div class="key white" id="key-${n}" data-note="${n}"><span class="key-id">${n}</span><span class="key-label">${n%12===0?'Do':n%12===4?'Mi':n%12===9?'La':n%12===11?'Si':''}</span></div>`).join('');
+  for(let n=low;n<=high;n++){if([1,3,6,8,10].includes(n%12)){const prev=whites.filter(x=>x<n).length;const left=(prev-0.3)/whites.length*100;const key=document.createElement('div');key.className='key black';key.dataset.note=n;key.id='key-'+n;key.style.left=left+'%';board.appendChild(key);}}
+}
+function flashKeys(notes){for(const n of notes){const el=$('key-'+n);if(el){el.classList.add('on');setTimeout(()=>el.classList.remove('on'),180)}}}
+function updateScore(){const total=runLength*state.lesson.steps.length;
+  $('success').textContent=state.hits;$('mistakes').textContent=state.misses;$('accuracy').textContent=state.judged?`${Math.round(state.hits/state.judged*100)}%`:'–';
+  const done=state.playing?Math.min(state.nextMiss,total):0;
+  $('progressFill').style.width=(100*done/total)+'%';
+  const rec=state.records[state.lesson.id];$('completedMessage').textContent=rec?`Kişisel rekor: %${rec.bestPercent} · ${rec.completed} tamamlanan çalışma`:'Sekiz ölçü çalışıp sonucunu gör.';
+}
+function getBpm(){return Number($('bpm').value)}
+function setBpm(value){state.bpm=Math.round(Math.max(45,Math.min(160,value)));$('bpm').value=String(state.bpm);$('tempoValue').textContent=state.bpm+' BPM'}
+function resetSession(){state.sessionId++;state.evaluated.clear();state.nextMiss=0;state.hits=0;state.misses=0;state.judged=0;state.visualBeat=-1;showMeasure(0);drawBeats(0);describeExpected(state.lesson.steps[0]);updateScore()}
+function queuedAudio(){if(!state.playing || state.mode!=='app'||!state.ctx)return;const c=state.ctx,len=state.lesson.steps.length,unit=msPerStep(state.bpm,state.lesson.denominator)/1000;
+  while(state.nextScheduled<runLength*len && state.audioStart+state.nextScheduled*unit<c.currentTime+.18){const absolute=state.nextScheduled,step=absolute%len,measure=Math.floor(absolute/len),at=state.audioStart+absolute*unit,event=getSteps(state.lesson,measure)[step];drums(at,step);if(state.demo&&event.midi)playNotes(event.midi,at);state.nextScheduled++;}
+}
+function clockPosition(now=performance.now()) {const c=state.clock;if(!c.running||!c.lastTickMs)return null;const pulsesPerStep=state.lesson.denominator===4?24:12;const tickMs=c.avgTickMs||60000/state.bpm/24;
+  const fractional=(c.ticks+Math.max(0,Math.min(now-c.lastTickMs,tickMs*1.4))/tickMs)/pulsesPerStep;
+  return {fractional,stepMs:tickMs*pulsesPerStep};
+}
+function beatPosition(now=performance.now()) {
+  if(state.mode==='clock'){const pos=clockPosition(now);if(!pos)return null;const absolute=Math.round(pos.fractional);return {absolute,measure:Math.floor(absolute/state.lesson.steps.length),step:absolute%state.lesson.steps.length,deviationMs:(pos.fractional-absolute)*pos.stepMs,stepMs:pos.stepMs,continuous:pos.fractional};}
+  const unit=msPerStep(state.bpm,state.lesson.denominator),hit=nearestStep({eventMs:now,originMs:state.originMs,stepMs:unit,stepsPerMeasure:state.lesson.steps.length});if(!hit)return null;return {...hit,stepMs:unit,continuous:(now-state.originMs)/unit};
+}
+function markMissed(upto){const max=runLength*state.lesson.steps.length;while(state.nextMiss<Math.min(max,upto)){const n=state.nextMiss++;const ev=currentEvent(state.lesson,n);if(ev.kind==='rest'||state.evaluated.has(n))continue;state.evaluated.set(n,'miss');state.misses++;state.judged++;if(n===state.visualBeat)paintStep(n,'miss');}updateScore();}
+function paintStep(absolute,type){const index=absolute%state.lesson.steps.length;const el=$('beat-'+index);if(el)el.classList.add(type)}
+function evaluate(notes,time,source){if(!state.playing || state.waitingClock){setFeedback(state.waitingClock?'Pa4X’te Style START tuşuna bas. MIDI Clock sinyali bekleniyor.':'Önce Başlat tuşuna bas.');return;}
+  const pos=beatPosition(time);if(!pos || pos.absolute>=runLength*state.lesson.steps.length)return;
+  const grade=timingGrade(pos.deviationMs,pos.stepMs);
+  if(grade==='off'){setFeedback('Zamanlama kaçtı. Vuruşların başlangıcında basmayı dene.','bad');return;}
+  if(state.evaluated.has(pos.absolute)){setFeedback('Bu vuruş zaten değerlendirildi; sonraki vuruşu bekle.');return;}
+  // Yakın vuruşa gelindiğinde, çoktan kapanmış önceki vuruşlar kaçırılmış olarak işaretlenir.
+  markMissed(pos.absolute);
+  const exp=currentEvent(state.lesson,pos.absolute),check=matchEvent(exp,notes,{strictBassOctave:state.strict});
+  state.evaluated.set(pos.absolute,check.ok?'hit':'miss');state.judged++;
+  if(check.ok){state.hits++;const qualifier=grade==='perfect'?'Tam zamanında':'Çok yakın';setFeedback(`✓ ${qualifier}! ${exp.label} · ${source} · ${pos.deviationMs<0?'erken':'geç'} ${Math.abs(Math.round(pos.deviationMs))} ms`,'good');paintStep(pos.absolute,'hit');}
+  else{state.misses++;setFeedback(`✕ ${exp.kind==='rest'?'Bu vuruş es. Çalma!':`Bu vuruşta ${exp.label} (${exp.notes}) bekleniyor.`}`,'bad');paintStep(pos.absolute,'miss');}
+  updateScore();
+}
+function animate(){if(!state.playing)return;const pos=beatPosition(),l=state.lesson,len=l.steps.length,total=runLength*len;
+  if(pos){const absolute=Math.floor(pos.continuous);if(absolute>=0){
+      markMissed(absolute);if(absolute>=total){complete();return;}
+      const measure=Math.floor(absolute/len),step=absolute%len;
+      if(state.visualBeat!==absolute){const prevMeasure=state.visualBeat<0?-1:Math.floor(state.visualBeat/len);if(prevMeasure!==measure){drawBeats(measure);}state.visualBeat=absolute;document.querySelectorAll('.beat').forEach(el=>el.classList.toggle('active',Number(el.dataset.step)===step));
+        for(let i=0;i<=step;i++){const result=state.evaluated.get(measure*len+i);if(result)paintStep(measure*len+i,result==='hit'?'hit':'miss');}
+        showMeasure(measure);describeExpected(getSteps(l,measure)[step]);}
+    }}state.raf=requestAnimationFrame(animate);
+}
+async function start(){if(state.playing)return;try{await audio().resume();}catch(e){setFeedback('Ses açılamadı: '+e.message,'bad');return;}
+  state.mode=$('sync').value;state.demo=$('demo').checked;state.strict=$('strict').checked;resetSession();state.playing=true;
+  $('play').disabled=true;$('stop').disabled=false;$('lesson').disabled=true;$('sync').disabled=true;$('bpm').disabled=true;$('tap').disabled=true;
+  if(state.mode==='app'){
+    state.waitingClock=false;state.originMs=performance.now()+320;state.audioStart=state.ctx.currentTime+.320;state.nextScheduled=0;
+    state.timer=setInterval(queuedAudio,25);queuedAudio();setStatus('● Alıştırma çalıyor',true);setFeedback('Hazır! Davulu dinle ve vuruş haritasına göre bas–akor çal.');
+  }else{
+    state.waitingClock=true;state.clock={armed:true,running:false,ticks:0,lastTickMs:0,avgTickMs:0,pulseTimes:[],sourceId:null};setStatus('◌ Pa4X bekleniyor');setFeedback('Pa4X’te MIDI Clock Send aç ve Style START tuşuna bas. Uygulama kendi davulunu çalmayacak.');
+  }
+  state.raf=requestAnimationFrame(animate);
+}
+function stop(completed=false){if(!state.playing)return;const completeRun=completed;state.playing=false;state.waitingClock=false;state.clock.armed=false;clearInterval(state.timer);cancelAnimationFrame(state.raf);state.timer=null;state.raf=null;
+  $('play').disabled=false;$('stop').disabled=true;$('lesson').disabled=false;$('sync').disabled=false;$('bpm').disabled=false;$('tap').disabled=false;setStatus('● Hazır');
+  document.querySelectorAll('.beat').forEach(el=>el.classList.remove('active'));
+  if(!completeRun){setFeedback('Çalışma durduruldu. Başlat ile yeniden dene.');$('progressFill').style.width='0%';}
+}
+function complete(){const total=runLength*state.lesson.steps.length;markMissed(total);const percent=state.judged?Math.round(state.hits/state.judged*100):0;
+  const prev=state.records[state.lesson.id]||{bestPercent:0,completed:0};state.records[state.lesson.id]={bestPercent:Math.max(prev.bestPercent,percent),completed:prev.completed+1,lastPercent:percent};save();
+  stop(true);$('progressFill').style.width='100%';updateScore();setFeedback(`🏁 8 ölçü tamamlandı! Başarı: %${percent} (${state.hits} doğru / ${state.misses} hata veya kaçan). ${percent>=80?'Yeni derse geçmeye hazırsın!':'Bir tur daha dene; hızını yavaşlatabilirsin.'}`,percent>=80?'good':'');
+}
+function changeLesson(id){if(state.playing)return;state.lesson=getLesson(id);setBpm(state.lesson.defaultBpm);resetSession();lessonMarkup();}
+function handleClock(data,time,portId=null){const c=state.clock;if(!state.playing||state.mode!=='clock'||!c.armed)return;
+  if(c.sourceId && portId && c.sourceId!==portId)return;
+  if(data===0xfa){if(!c.sourceId)c.sourceId=portId;c.running=true;c.ticks=0;c.lastTickMs=0;c.avgTickMs=0;c.pulseTimes=[];state.waitingClock=true;resetSession();setStatus('● Pa4X START alındı',true);setFeedback('Pa4X START algılandı. MIDI Clock darbeleri bekleniyor.');return;}
+  if(data===0xfb){c.running=true;state.waitingClock=false;setStatus('● Pa4X çalıyor',true);return;}
+  if(data===0xfc){if(c.running){markMissed(Math.max(0,Math.floor((clockPosition(time)?.fractional||0))));c.running=false;state.waitingClock=true;setStatus('◌ Pa4X durdu');setFeedback('Pa4X Style durduruldu. Yeniden START ile başlayabilirsin.');}return;}
+  if(data!==0xf8||!c.running)return;
+  if(c.lastTickMs){const delta=time-c.lastTickMs;if(delta>3&&delta<130){c.pulseTimes.push(delta);if(c.pulseTimes.length>36)c.pulseTimes.shift();const sorted=[...c.pulseTimes].sort((a,b)=>a-b);const median=sorted[Math.floor(sorted.length/2)];c.avgTickMs=median;}}
+  c.lastTickMs=time;if(c.ticks!==0)c.ticks++;else if(c.pulseTimes.length)c.ticks++; // İlk clock darbesi 0 sayılır
+  state.waitingClock=false;
+  const bpm=c.avgTickMs?Math.round(60000/(c.avgTickMs*24)):state.bpm;$('clockStatus').textContent=`Pa4X Clock: ${bpm} BPM · ${c.ticks} darbe`;setStatus('● Pa4X ile senkron',true);
+}
+function midiInputChanged(){for(const p of state.midi?.inputs.values()||[])p.onmidimessage=null;state.midiCluster=null;clearTimeout(state.midiClusterTimer);state.midiNotes.clear();const id=$('device').value;state.midiInput=state.midi?.inputs.get(id)||null;
+  // Pa4X farklı USB portlarında KEYBOARD notaları ve SOUND/Clock mesajları yayınlayabilir.
+  // Clock bütün portlardan dinlenir; notalar yalnızca seçili giriş portundan alınır.
+  for(const p of state.midi?.inputs.values()||[])p.onmidimessage=ev=>{const status=ev.data?.[0];if(status>=0xf8)handleClock(status,performance.now(),p.id);else if(p.id===state.midiInput?.id)handleMidi(ev);};
+  $('midiStatus').textContent=state.midiInput?`Nota girişi: ${state.midiInput.name||'MIDI cihazı'}. Clock mesajları tüm giriş portlarında izlenir.`:'MIDI izni verildi; aktif nota girişi seçilmedi.';
+}
+function refreshMidi(){if(!state.midi)return;const input=$('device'),ports=[...state.midi.inputs.values()],current=input.value;input.innerHTML=ports.length?ports.map(p=>{const opt=document.createElement('option');opt.value=p.id;opt.textContent=p.name||'MIDI cihazı';return opt.outerHTML;}).join(''):'<option value="">Giriş bulunamadı</option>';input.disabled=ports.length===0;
+  if(ports.length){const preferred=ports.find(p=>/pa4x.*keyboard|keyboard.*pa4x/i.test(p.name||''))||ports.find(p=>/pa4x/i.test(p.name||''))||ports[0];input.value=ports.some(p=>p.id===current)?current:preferred.id;}
+  midiInputChanged();
+}
+async function connect(){if(!navigator.requestMIDIAccess){$('midiStatus').textContent='Web MIDI desteklenmiyor. Windows Chrome veya Edge ile HTTPS / localhost kullan.';return;}
+  try{state.midi=await navigator.requestMIDIAccess({sysex:false});refreshMidi();state.midi.onstatechange=refreshMidi;$('connect').textContent='✓ MIDI girişlerini yenile';}catch(e){$('midiStatus').textContent='MIDI bağlantı hatası: '+(e.message||String(e));}
+}
+function handleMidi(ev){const d=ev.data,now=performance.now();if(!d||!d.length)return;const status=d[0];if(status>=0xf8){handleClock(status,now);return;}
+  if((status&0xf0)!==0x90&&(status&0xf0)!==0x80)return;
+  const channel=(status&0x0f)+1,requested=$('channel').value;if(requested!=='all'&&Number(requested)!==channel)return;
+  const note=d[1],velocity=d[2]||0;if(note>Number($('maxnote').value))return;
+  if((status&0xf0)===0x80||velocity===0){state.midiNotes.delete(note);return;}
+  state.midiNotes.set(note,now);$('midiLast').textContent=`${noteName(note)} · ${note} · Kanal ${channel}`;flashKeys([note]);
+  // Aynı anda basılan 3/4 notayı tek akor kabul et. İlk notanın zaman damgasını koru.
+  if(!state.midiCluster)state.midiCluster={notes:[],firstMs:now};
+  if(!state.midiCluster.notes.includes(note))state.midiCluster.notes.push(note);
+  clearTimeout(state.midiClusterTimer);const clusterId=state.sessionId;
+  const flush=()=>{if(clusterId!==state.sessionId)return;const cluster=state.midiCluster;state.midiCluster=null;if(cluster?.notes?.length)evaluate(cluster.notes,cluster.firstMs,'Pa4X MIDI');};
+  const elapsed=now-state.midiCluster.firstMs;
+  state.midiClusterTimer=setTimeout(flush,Math.max(10,Math.min(110,190-elapsed)));
+}
+function selectSync(){state.mode=$('sync').value;const clock=state.mode==='clock';$('sourceHint').textContent=clock?'Pa4X’in kendi davulu çalar. Clock Send ve MIDI bağlantısı gerekir; cihazda test edilmelidir.':'Uygulamanın davulu çalar. Pa4X bağlantısı olmasa da çalışır.';$('clockStatus').textContent=clock?'Pa4X START/Clock bekleniyor':'MIDI Clock beklenmiyor';}
+function tapTempo(){const now=performance.now();state.tapTimes=state.tapTimes.filter(t=>now-t<3500);state.tapTimes.push(now);if(state.tapTimes.length>=3){const intervals=state.tapTimes.slice(1).map((t,i)=>t-state.tapTimes[i]);const average=intervals.reduce((a,b)=>a+b,0)/intervals.length;setBpm(60000/average);setFeedback(`Tempo: ${state.bpm} BPM. Üç veya daha fazla kez düzenli dokun.`);}else setFeedback('Dört eşit aralıklı vuruşla temponu belirle.');}
+function initialize(){drawKeyboard();for(const l of LESSONS){const opt=document.createElement('option');opt.value=l.id;opt.textContent=`${l.level}. ${l.title}`;$('lesson').appendChild(opt)}for(let ch=1;ch<=16;ch++){const opt=document.createElement('option');opt.value=String(ch);opt.textContent='Kanal '+ch;$('channel').appendChild(opt)}
+  $('play').addEventListener('click',start);$('stop').addEventListener('click',()=>stop());$('lesson').addEventListener('change',ev=>changeLesson(ev.target.value));$('bpm').addEventListener('input',ev=>setBpm(Number(ev.target.value)));$('sync').addEventListener('change',selectSync);$('demo').addEventListener('change',ev=>state.demo=ev.target.checked);$('strict').addEventListener('change',ev=>state.strict=ev.target.checked);$('tap').addEventListener('click',tapTempo);$('connect').addEventListener('click',()=>state.midi?refreshMidi():connect());$('device').addEventListener('change',midiInputChanged);
+  $('reset').addEventListener('click',()=>{if(!window.confirm('Bu dersin yerel başarı kaydı sıfırlansın mı?'))return;delete state.records[state.lesson.id];save();resetSession();setFeedback('Bu dersin ilerleme kaydı sıfırlandı.');});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden&&state.playing&&state.mode==='app'){stop();setFeedback('Sekme arka plana geçtiği için ritim durduruldu. Tekrar başlatabilirsin.');}});
+  window.addEventListener('pagehide',()=>stop());
+  setBpm(state.lesson.defaultBpm);lessonMarkup();selectSync();
+  if('serviceWorker' in navigator && /^https?:/.test(location.protocol))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  window.basakorDebug={version:VERSION,getState:()=>({playing:state.playing,lesson:state.lesson.id,mode:state.mode,bpm:state.bpm,hits:state.hits,misses:state.misses}),simulateMidi:bytes=>handleMidi({data:new Uint8Array(bytes)})};
+}
+initialize();
+
+</script>
+</body>
+</html>
