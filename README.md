@@ -1,4 +1,4 @@
-# 🎹 BasAkor Akademi v0.3.0
+# 🎹 BasAkor Akademi v0.3.1
 
 Türkçe, sıfır bağımlılıklı bir **Korg Pa4X bas–akor eğitim PWA'sı**. Sol elle bas çizgisi, sağ elle akor çalmayı öğrenmek isteyen bir org müzisyeni için geliştirildi.
 
@@ -6,6 +6,7 @@ Türkçe, sıfır bağımlılıklı bir **Korg Pa4X bas–akor eğitim PWA'sı**
 
 - **14 çalışma kalıbı:** 4/4, 6/8, 5/8, 7/8, 9/8, 12/8; farklı aksak ölçü gruplamaları; Em→Am, Em→B7 ve Am→Em.
 - **MIDI şarkıdan çalışma:** `.mid` dosyasını tarayıcıda açar; ölçü, tempo, track/kanal, program ve nota aralıklarını çözümler. Bas ve akor kaynaklarını seçtirip 1/2/4 ölçülük bölümü çalışma döngüsüne dönüştürür.
+- **MIDI oynatıcı:** Dosyanın tamamını çalar; başlat/duraklat, başa sar, konum, hız, kanal sessize alma ve tek kanal dinleme kontrolleri sunar. Sesler tarayıcıda sentezlenir; dosya sunucuya gönderilmez.
 - MIDI'deki kaynak kararını tahmin eder ve düzenlemene izin verir. Hedef varsayılan olarak **Mi karar**dır; bas ve akor notaları aynı aralıkla taşınır, dosyanın majör/minör ilişkisi korunur, davul kanalı transpoze edilmez.
 - Etkin piyano kanalı yoksa çok sesli bir armoni kanalı (ör. gitar veya yaylılar) akor kaynağı olarak önerilir; akor çalışması mevcut e-piyano tonlarıyla sunulur.
 - **Seviye ve kalıp seçimi:** Başlangıç, ritim kalıpları, akor geçişleri veya tüm kalıplar; ilk açılışta 14 kalıbın tamamı seçilebilir.
@@ -82,6 +83,7 @@ Güvenlik: Dış sunucuya müzik, MIDI veya kişisel veri gönderilmez. MIDI yal
 
 - Gerçek Pa4X ile entegre test, MIDI kanalı algılama rehberi, ölçü başı Clock senkronizasyonu/latency kalibrasyonu.
 - MIDI ton tahmini armoni sezgiseldir; düşük güvenli tahminleri kullanıcı doğrulamalıdır. Etkin piyano kanalı yoksa armoni kaynağı olarak başka bir çok sesli kanal seçilmelidir.
+- MIDI oynatıcı General MIDI ses ailelerini Web Audio ile yaklaştırır; ayrı bir SoundFont/örnek bankası olmadığı için enstrüman tınıları özgün kayıtlarla aynı değildir.
 - Tempo haritası analiz edilir; oluşturulan bölüm şu sürümde seçilen ölçünün başlangıç temposunda sabit çalar. Ölçü işareti değişen MIDI dosyaları analiz edilir ancak çalışma hazırlama devre dışı kalır.
 - Gerçek Türk usullerine özgü davul örnekleri, akor ters çevrimlerini düzenleme ve dışa aktarılabilir transpoze MIDI.
 - Puanlama, ekran/cihaz gecikmesine duyarlı bir **alıştırma göstergesidir**, laboratuvar hassasiyetinde ölçüm değildir.

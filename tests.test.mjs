@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {LESSONS,getLesson,getSteps,matchEvent,msPerStep,nearestStep,timingGrade,currentEvent,countableEvents} from './music.mjs';
 import {parseMidiFile,suggestedChannels,buildMidiLesson,tempoAt,meterAt} from './midi-file.mjs';
+import {MidiFilePlayer,midiTickToSeconds,midiPlaybackEvents} from './midi-player.mjs';
 
 function vlq(value){let buffer=value&0x7f;while((value>>=7)){buffer<<=8;buffer|=(value&0x7f)|0x80;}const out=[];while(true){out.push(buffer&255);if(buffer&0x80)buffer>>=8;else break;}return out;}
 function midiFixture(){
@@ -28,4 +29,5 @@ test('SMF analyzer separates channels and prepares an E-centered practice loop',
   const lesson=buildMidiLesson(file,{bassChannel:2,chordChannel:5,sourceKey:0,targetKey:4,startBar:1,barCount:1});assert.equal(lesson.transposeSemitones,4);assert.equal(lesson.steps.length,16);assert.equal(lesson.songCycle.length,1);assert.deepEqual(lesson.steps[0].midi,[44]);assert.equal(lesson.steps[4].kind,'chord');assert.deepEqual(lesson.steps[4].midi,[64,68,71]);
 });
 test('MIDI lesson preparation rejects changing time signatures',()=>{const file=parseMidiFile(midiFixture());file.meterMap.push({tick:384,numerator:3,denominator:4});assert.throws(()=>buildMidiLesson(file,{bassChannel:2,chordChannel:5}),/ölçü işareti değişiyor/i);});
+test('MIDI player follows tempo changes and supports channel selection',()=>{const file=parseMidiFile(midiFixture());file.tempoMap.push({tick:96,bpm:60});assert.equal(midiTickToSeconds(file,384),3.5);const events=midiPlaybackEvents(file);assert.equal(events[0].startSeconds,0);assert.equal(events.find(e=>e.channel===5).startSeconds,.5);const player=new MidiFilePlayer(file,{contextProvider:()=>{throw new Error('Audio context must start only after a user gesture.')}});assert.equal(player.snapshot().enabledChannels.size,2);player.soloChannel(5);assert.deepEqual([...player.snapshot().enabledChannels],[5]);player.selectChannels([2]);assert.deepEqual([...player.snapshot().enabledChannels],[2]);player.setChannelEnabled(2,false);assert.equal(player.snapshot().enabledChannels.size,0);});
 test('combined bass and piano chord require both hands',()=>{const expected={kind:'combo',bassMidi:[40],chordMidi:[64,67,71]};assert.equal(matchEvent(expected,[40,64,67,71]).ok,true);assert.equal(matchEvent(expected,[40,64,67]).ok,false);assert.equal(matchEvent(expected,[41,64,67,71]).ok,false);});
