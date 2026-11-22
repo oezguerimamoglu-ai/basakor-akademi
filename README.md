@@ -1,13 +1,13 @@
 # 🎹 BasAkor Akademi v0.2.0
 
-Türkçe, sıfır bağımlılıklı bir **Korg Pa4X bas–akor eğitim PWA'sı**. Hazır otomatik bas/akor eşliğini bırakıp bas ve akorları elle öğrenmek isteyen bir org müzisyeni için geliştirildi.
+Türkçe, sıfır bağımlılıklı bir **Korg Pa4X bas–akor eğitim PWA'sı**. Sol elle bas çizgisi, sağ elle akor çalmayı öğrenmek isteyen bir org müzisyeni için geliştirildi.
 
 ## Şu anda çalışan özellikler
 
 - **7 ders:** 4/4 Em, daha hızlı 4/4, 9/8 (2+2+2+3), 7/8 (2+2+3), 5/8 (2+3), iki ölçüde Em→Am ve Em→B7.
 - Metronom/davul sesi (Web Audio sentezi) ve 45–160 BPM, dokunarak tempo belirleme.
 - Akıllı 8 ölçülük alıştırma, bas–akor adımı görselleştirme, sesli örnek isteğe bağlı.
-- Ekrandaki bas/akor tuşları, piyano tuşlarını görsel olarak vurgulama.
+- Sol el bası ve sağ el akoru ayrı gösteren ekran tuşları; sağ el akorları E4 ve üzeri register'dadır.
 - Doğru nota, akor bileşenleri, erken/geç vuruş geri bildirimi.
 - **Web MIDI giriş desteği:** Cihaz/kanal seçimi, MIDI nota ve 190 ms'lik akor gruplaması, en yüksek nota filtresi. Clock mesajları her MIDI girişinden dinlenir; nota verileri yalnızca seçili girişten alınır.
 - Deneysel **harici MIDI Clock modu**: Pa4X kendi davulunu çalarken `START` ve `F8` darbelerini takip eder; uygulama davulu sessiz kalır. **Fiziksel cihazla doğrulanmadı**.

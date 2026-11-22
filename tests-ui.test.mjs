@@ -13,7 +13,7 @@ class MockElement{
 }
 const ids='statusPill levelTag lesson tempoValue bpm sync demo strict play stop tap sourceHint meterTag measure measureProgress actionType actionNote actionDetail lessonDescription grouping beats feedback pads keyboard success mistakes accuracy progressFill completedMessage reset midiStatus connect device channel maxnote midiLast clockStatus instructions'.split(' ');
 const nodes=Object.fromEntries(ids.map(id=>[id,new MockElement(id)]));
-nodes.maxnote.value='59';nodes.channel.value='all';nodes.sync.value='app';
+nodes.maxnote.value='83';nodes.channel.value='all';nodes.sync.value='app';
 globalThis.document={getElementById:id=>nodes[id]||null,querySelectorAll:()=>[],createElement:()=>new MockElement(),addEventListener(){},hidden:false};
 globalThis.window={AudioContext:class{currentTime=0;resume(){return Promise.resolve()}},addEventListener(){},confirm:()=>true};
 globalThis.localStorage={getItem:()=>null,setItem(){}};
@@ -30,11 +30,11 @@ test('start, simulated MIDI bass, stop, next lesson',async()=>{
   await sleep(342);window.basakorDebug.simulateMidi([0x90,40,100]);await sleep(155);
   assert.equal(window.basakorDebug.getState().hits,1,'MIDI bass E2 must be recognized');
   await sleep(740);
-  window.basakorDebug.simulateMidi([0x90,52,100]);
-  window.basakorDebug.simulateMidi([0x90,55,100]);
-  window.basakorDebug.simulateMidi([0x90,59,100]);
+  window.basakorDebug.simulateMidi([0x90,64,100]);
+  window.basakorDebug.simulateMidi([0x90,67,100]);
+  window.basakorDebug.simulateMidi([0x90,71,100]);
   await sleep(155);
-  assert.equal(window.basakorDebug.getState().hits,2,'MIDI Em chord E3/G3/B3 must be recognized');
+  assert.equal(window.basakorDebug.getState().hits,2,'MIDI Em chord E4/G4/B4 must be recognized');
   nodes.stop.events.click();assert.equal(window.basakorDebug.getState().playing,false);
   nodes.lesson.value='em-98';nodes.lesson.events.change({target:nodes.lesson});
   assert.equal(window.basakorDebug.getState().lesson,'em-98');assert.match(nodes.meterTag.textContent,/9\/8/);

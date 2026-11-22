@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {LESSONS,getLesson,getSteps,matchEvent,msPerStep,nearestStep,timingGrade,currentEvent,countableEvents} from './music.mjs';
 test('all lesson meters and groupings agree',()=>{for(const l of LESSONS){assert.equal(l.steps.length,l.grouping.reduce((a,b)=>a+b,0),l.id);if(l.alternate)assert.equal(l.alternate.length,l.steps.length);assert.ok(l.steps.some(e=>e.kind==='bass'));assert.ok(l.steps.some(e=>e.kind==='chord'));}});
-test('first measure bass chord bass chord',()=>{const l=getLesson('em-44');assert.deepEqual(l.steps.map(x=>x.kind),['bass','chord','bass','chord']);assert.equal(countableEvents(l,2),8)});
+test('first measure left-hand bass and right-hand chord',()=>{const l=getLesson('em-44');assert.deepEqual(l.steps.map(x=>x.kind),['bass','chord','bass','chord']);assert.deepEqual(l.steps[0].midi,[40]);assert.deepEqual(l.steps[1].midi,[64,67,71]);assert.equal(countableEvents(l,2),8)});
 test('alternating chords depend on measure',()=>{const l=getLesson('em-am');assert.equal(getSteps(l,0)[1].label,'Em');assert.equal(getSteps(l,1)[1].label,'Am');assert.equal(currentEvent(l,5).label,'Am');});
 test('chord recognition matches inversion and disallows incomplete chords',()=>{const e=getLesson('em-44').steps[1];assert.equal(matchEvent(e,[59,52,55]).ok,true);assert.equal(matchEvent(e,[64,67,71]).ok,true);assert.equal(matchEvent(e,[52,55]).ok,false);assert.equal(matchEvent(e,[52,55,58]).ok,false)});
 test('B7 requires seventh pitch class',()=>{const e=getLesson('em-b7').alternate[1];assert.equal(matchEvent(e,[47,51,54,57]).ok,true);assert.equal(matchEvent(e,[47,51,54]).ok,false)});

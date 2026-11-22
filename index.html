@@ -46,7 +46,7 @@
         </div>
         <div class="barhead"><strong>Vuruş haritası</strong><span id="grouping">1 + 1 + 1 + 1</span></div>
         <div class="beatgrid" id="beats" aria-label="Ritim adımları"></div>
-        <div class="feedback" id="feedback" role="status" aria-live="polite">Başlat'a bas ve ilk vuruşta kalın Mi çal.</div>
+        <div class="feedback" id="feedback" role="status" aria-live="polite">Başlat'a bas; bası sol elinle, akoru sağ elinle çal.</div>
         <div class="legend"><span><i class="dot bassdot"></i> Bas</span><span><i class="dot chorddot"></i> Akor</span><span><i class="dot restdot"></i> Es</span></div>
       </section>
 
@@ -54,7 +54,7 @@
         <div class="section-head"><h2 id="heading-pads"><span class="number">03</span> Buradan da çal</h2><span class="hint">Dokunmatik çalışma</span></div>
         <p class="subtle">Davul vuruşuna denk gelecek şekilde doğru bas veya akor tuşuna dokun. Bilgisayarda fare veya klavye ile de çalışabilirsin.</p>
         <div class="padgrid" id="pads"></div>
-        <div class="barhead keyboardHead"><strong>Sol elin için nota rehberi</strong><span>MIDI numaraları gösterilir</span></div>
+        <div class="barhead keyboardHead"><strong>Sol el bası · sağ el akoru</strong><span>MIDI numaraları gösterilir</span></div>
         <div class="keyboardwrap"><div id="keyboard" class="keyboard" aria-label="Piyano klavyesi görseli"></div></div>
         <p class="meta">🎵 Ekrandaki akor tuşları üç veya dört notayı birlikte çalar. Gerçek Pa4X'te bunları kendin aynı anda basmalısın.</p>
       </section>
@@ -73,16 +73,16 @@
         <button id="connect" class="btn secondary full">MIDI bağlantısını aç</button>
         <div id="midiStatus" class="device-status">Henüz MIDI bağlantısı yok. Ekrandaki bas–akor tuşlarıyla hemen çalışabilirsin.</div>
         <label class="field" for="device"><span>MIDI giriş cihazı</span><select id="device" disabled><option value="">Bağlı cihaz yok</option></select></label>
-        <div class="fields two"><label class="field" for="channel"><span>Giriş kanalı</span><select id="channel"><option value="all">Tümü</option></select></label><label class="field" for="maxnote"><span>En yüksek nota</span><select id="maxnote"><option value="59">B3 (59)</option><option value="60">C4 (60)</option><option value="64">E4 (64)</option><option value="127">Sınırsız</option></select></label></div>
+        <div class="fields two"><label class="field" for="channel"><span>Giriş kanalı</span><select id="channel"><option value="all">Tümü</option></select></label><label class="field" for="maxnote"><span>En yüksek nota</span><select id="maxnote"><option value="71">B4 (71)</option><option value="76">E5 (76)</option><option value="83">B5 (83)</option><option value="127">Sınırsız</option></select></label></div>
         <div class="midimonitor"><span>Son MIDI notası</span><strong id="midiLast">–</strong><span id="clockStatus">MIDI Clock beklenmiyor</span></div>
-        <details><summary>Pa4X bağlantı adımları</summary><ol><li>USB DEVICE (B tipi) portunu Windows bilgisayarına bağla.</li><li>Gerekirse Korg USB-MIDI sürücüsünü kur.</li><li>Bu sayfayı Chrome veya Edge'de HTTPS/localhost üzerinden aç.</li><li>“MIDI bağlantısını aç” seç, ardından Pa4X'te sol elinle tuşlara bas.</li><li>Pa4X davulunu kullanacaksan <b>Global → MIDI → General Controls → Clock Send</b> seçeneğini etkinleştir. Cihaz her açıldığında yeniden kontrol et.</li><li>Yanlış kanal veya üst el notaları gelirse kanal ve en yüksek nota sınırını değiştir.</li></ol></details>
+        <details><summary>Pa4X bağlantı adımları</summary><ol><li>USB DEVICE (B tipi) portunu Windows bilgisayarına bağla.</li><li>Gerekirse Korg USB-MIDI sürücüsünü kur.</li><li>Bu sayfayı Chrome veya Edge'de HTTPS/localhost üzerinden aç.</li><li>“MIDI bağlantısını aç” seç, ardından Pa4X'te bas notalarını sol elinle, akorları sağ elinle çal.</li><li>Pa4X davulunu kullanacaksan <b>Global → MIDI → General Controls → Clock Send</b> seçeneğini etkinleştir. Cihaz her açıldığında yeniden kontrol et.</li><li>Yanlış kanal veya üst el notaları gelirse kanal ve en yüksek nota sınırını değiştir.</li></ol></details>
       </section>
       <section class="panel help" aria-labelledby="heading-help">
         <h2 id="heading-help">📖 Ders notu</h2>
         <ul class="instructions" id="instructions"></ul>
         <p class="meta">“Mi karar” her zaman Mi minör demek değildir. Buradaki Em/Am/B7 dersleri el koordinasyonu içindir; makam derslerini ayrıca geliştireceğiz.</p>
       </section>
-      <section class="panel tips"><h2>💡 Nasıl çalışmalı?</h2><p>Önce 65 BPM'de 8 ölçü boyunca yalnızca sol eli kullan. %80 başarıya ulaştığında tempoyu artır. Sağ el melodisini sonraki aşamada ekle.</p></section>
+      <section class="panel tips"><h2>💡 Nasıl çalışmalı?</h2><p>Önce 65 BPM'de 8 ölçü boyunca sol elde bas, sağ elde akor çalış. %80 başarıya ulaştığında tempoyu artır.</p></section>
     </aside>
   </div>
   <footer>BasAkor Akademi v0.2.0 · Veriler bu cihazın tarayıcısında saklanır · Sesler sentetiktir · Pa4X MIDI Clock özelliği cihazda henüz test edilmedi.</footer>

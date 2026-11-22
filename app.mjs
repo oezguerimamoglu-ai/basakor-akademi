@@ -1,4 +1,4 @@
-import {VERSION,LESSONS,getLesson,getSteps,msPerStep,noteName,matchEvent,nearestStep,timingGrade,currentEvent} from './music.mjs';
+import {VERSION,LESSONS,getLesson,getSteps,msPerStep,noteName,matchEvent,nearestStep,timingGrade,currentEvent,handName} from './music.mjs';
 
 const $ = id=>document.getElementById(id);
 const KEY='basakor-akademi-progress-v2';
@@ -31,20 +31,20 @@ function drums(t,step){const l=state.lesson;const start=l.accent.includes(step);
 function setFeedback(message,type=''){const el=$('feedback');el.className='feedback'+(type?' '+type:'');el.textContent=message;}
 function setStatus(message,playing=false){$('statusPill').textContent=message;$('statusPill').classList.toggle('playing',playing)}
 function showMeasure(num){$('measure').textContent=`Ölçü ${num+1}`;$('measureProgress').textContent=`${Math.min(num+1,runLength)} / ${runLength}`;}
-function describeExpected(expected){if(!expected)return;$('actionType').textContent=expected.kind==='bass'?'BAS':expected.kind==='chord'?'AKOR':'ES';$('actionType').className='actiontype '+expected.kind;$('actionNote').textContent=expected.label;$('actionDetail').textContent=expected.notes;const activeNotes=expected.midi||[];document.querySelectorAll('.key').forEach(key=>key.classList.toggle('expect',activeNotes.includes(Number(key.dataset.note))));}
+function describeExpected(expected){if(!expected)return;$('actionType').textContent=handName(expected.kind);$('actionType').className='actiontype '+expected.kind;$('actionNote').textContent=expected.label;$('actionDetail').textContent=expected.notes;const activeNotes=expected.midi||[];document.querySelectorAll('.key').forEach(key=>key.classList.toggle('expect',activeNotes.includes(Number(key.dataset.note))));}
 function lessonMarkup(){const l=state.lesson;$('meterTag').textContent=`${l.meter} · ${l.grouping.join('+')}`;$('levelTag').textContent=`Ders ${l.level} / ${LESSONS.length}`;$('lessonDescription').textContent=l.description;$('grouping').textContent=l.grouping.join(' + ');
-  const hints=l.steps.map((s,i)=>`<li><span class="highlight">${i+1}. vuruş:</span> ${s.kind==='rest'?'Es (çalma)':s.kind==='bass'?`${s.label} bas · ${s.notes}`:`${s.label} akor · ${s.notes}`}</li>`);
+  const hints=l.steps.map((s,i)=>`<li><span class="highlight">${i+1}. vuruş:</span> ${s.kind==='rest'?'Es (çalma)':s.kind==='bass'?`Sol el bas ${s.label} · ${s.notes}`:`Sağ el akor ${s.label} · ${s.notes}`}</li>`);
   $('instructions').innerHTML=hints.join('');
   drawBeats(0);renderPads();showMeasure(0);describeExpected(l.steps[0]);updateScore();
 }
 function drawBeats(measure){const l=state.lesson,steps=getSteps(l,measure);const beatArea=$('beats');beatArea.style.setProperty('--cols',steps.length);beatArea.className='beatgrid'+(steps.length>4?' long':'');let groupStart=0;const starts=new Set(l.grouping.map(group=>{const i=groupStart;groupStart+=group;return i;}));
-  beatArea.innerHTML=steps.map((s,i)=>`<div class="beat ${s.kind} ${starts.has(i)?'group-start':''}" id="beat-${i}" data-step="${i}"><div class="ord">${i+1}</div><div class="type">${s.kind==='bass'?'BAS':s.kind==='chord'?'AKOR':'ES'}</div><div class="note">${s.label}</div></div>`).join('');
+  beatArea.innerHTML=steps.map((s,i)=>`<div class="beat ${s.kind} ${starts.has(i)?'group-start':''}" id="beat-${i}" data-step="${i}"><div class="ord">${i+1}</div><div class="type">${s.kind==='bass'?'SOL BAS':s.kind==='chord'?'SAĞ AKOR':'ES'}</div><div class="note">${s.label}</div></div>`).join('');
 }
 function relevantPads(){const actions=new Map();for(const e of [...state.lesson.steps,...(state.lesson.alternate||[])])if(e.kind!=='rest')actions.set(e.kind+':'+e.midi.join(','),e);return [...actions.values()];}
-function renderPads(){const items=relevantPads();$('pads').innerHTML=items.map((s,i)=>`<button class="pad ${s.kind}" data-index="${i}" aria-label="${s.kind==='bass'?'Bas':'Akor'} ${s.label}">${s.label}<small>${s.kind==='bass'?'BAS':'AKOR'} · ${s.notes}</small></button>`).join('');
+function renderPads(){const items=relevantPads();$('pads').innerHTML=items.map((s,i)=>`<button class="pad ${s.kind}" data-index="${i}" aria-label="${s.kind==='bass'?'Sol el bas':'Sağ el akor'} ${s.label}">${s.label}<small>${s.kind==='bass'?'SOL EL · BAS':'SAĞ EL · AKOR'} · ${s.notes}</small></button>`).join('');
   $('pads').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{const e=items[Number(b.dataset.index)];playNotes(e.midi);evaluate(e.midi,performance.now(),'ekran');flashKeys(e.midi)}));
 }
-function drawKeyboard(){const board=$('keyboard');const low=33,high=71;const whites=[];for(let n=low;n<=high;n++)if(![1,3,6,8,10].includes(n%12))whites.push(n);
+function drawKeyboard(){const board=$('keyboard');const low=33,high=83;const whites=[];for(let n=low;n<=high;n++)if(![1,3,6,8,10].includes(n%12))whites.push(n);
   board.innerHTML=whites.map(n=>`<div class="key white" id="key-${n}" data-note="${n}"><span class="key-id">${n}</span><span class="key-label">${n%12===0?'Do':n%12===4?'Mi':n%12===9?'La':n%12===11?'Si':''}</span></div>`).join('');
   for(let n=low;n<=high;n++){if([1,3,6,8,10].includes(n%12)){const prev=whites.filter(x=>x<n).length;const left=(prev-0.3)/whites.length*100;const key=document.createElement('div');key.className='key black';key.dataset.note=n;key.id='key-'+n;key.style.left=left+'%';board.appendChild(key);}}
 }
@@ -98,7 +98,7 @@ async function start(){if(state.playing)return;try{await audio().resume();}catch
   $('play').disabled=true;$('stop').disabled=false;$('lesson').disabled=true;$('sync').disabled=true;$('bpm').disabled=true;$('tap').disabled=true;
   if(state.mode==='app'){
     state.waitingClock=false;state.originMs=performance.now()+320;state.audioStart=state.ctx.currentTime+.320;state.nextScheduled=0;
-    state.timer=setInterval(queuedAudio,25);queuedAudio();setStatus('● Alıştırma çalıyor',true);setFeedback('Hazır! Davulu dinle ve vuruş haritasına göre bas–akor çal.');
+    state.timer=setInterval(queuedAudio,25);queuedAudio();setStatus('● Alıştırma çalıyor',true);setFeedback('Hazır! Davulu dinle; bası sol elinle, akoru sağ elinle çal.');
   }else{
     state.waitingClock=true;state.clock={armed:true,running:false,ticks:0,lastTickMs:0,avgTickMs:0,pulseTimes:[],sourceId:null};setStatus('◌ Pa4X bekleniyor');setFeedback('Pa4X’te MIDI Clock Send aç ve Style START tuşuna bas. Uygulama kendi davulunu çalmayacak.');
   }

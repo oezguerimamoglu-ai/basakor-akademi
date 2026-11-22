@@ -5,41 +5,41 @@ const step=(kind,label,notes,options={})=>({kind,label,notes,...options});
 export const LESSONS = [
   {
     id:'em-44', level:1, title:'Mi minör · İlk adım', meter:'4/4', grouping:[1,1,1,1], denominator:4,
-    description:'DUM–ÇAK–DUM–ÇAK. Birinci ve üçüncü vuruşta bas; ikinci ve dördüncüde akor.',
+    description:'DUM–ÇAK–DUM–ÇAK. Sol elde birinci ve üçüncü vuruşta bas; sağ elde ikinci ve dördüncüde akor.',
     defaultBpm:65, accent:[0,2],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]})]
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]})]
   },
   {
     id:'em-44-variation', level:2, title:'4/4 · İkinci vuruş', meter:'4/4', grouping:[1,1,1,1], denominator:4,
     description:'Mi basıyla başla, ikinci bası Si’ye kaydır; düzeni 8 ölçü boyunca koru.',defaultBpm:85,accent:[0,2],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]})]
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]})]
   },
   {
     id:'em-98',level:3,title:'9/8 · 2+2+2+3',meter:'9/8',grouping:[2,2,2,3],denominator:8,
     description:'Dokuz sekizlik: 2+2+2+3. Bu sadece koordinasyon kalıbıdır; yöresel ritim iddiası yoktur.',defaultBpm:90,accent:[0,2,4,6],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('rest','ES','–'),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('rest','ES','–'),step('bass','Sİ','B1',{midi:[35]}),step('rest','ES','–'),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('rest','ES','–'),step('rest','ES','–')]
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('rest','ES','–'),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('rest','ES','–'),step('bass','Sİ','B1',{midi:[35]}),step('rest','ES','–'),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('rest','ES','–'),step('rest','ES','–')]
   },
   {
     id:'em-78',level:4,title:'7/8 · 2+2+3',meter:'7/8',grouping:[2,2,3],denominator:8,
     description:'Yedi sekizlik sayımı: 1-2 / 1-2 / 1-2-3. Son grubun uzunluğunu hisset.',defaultBpm:90,accent:[0,2,4],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('rest','ES','–'),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('rest','ES','–'),step('bass','Sİ','B1',{midi:[35]}),step('rest','ES','–'),step('chord','Em','E3–G3–B3',{midi:[52,55,59]})]
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('rest','ES','–'),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('rest','ES','–'),step('bass','Sİ','B1',{midi:[35]}),step('rest','ES','–'),step('chord','Em','E4–G4–B4',{midi:[64,67,71]})]
   },
   {
     id:'em-58',level:5,title:'5/8 · 2+3',meter:'5/8',grouping:[2,3],denominator:8,
-    description:'Beş sekizlik sayımı: 1-2 / 1-2-3. Bas ve akor sırasını kaybetme.',defaultBpm:90,accent:[0,2],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('rest','ES','–'),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('rest','ES','–'),step('chord','Em','E3–G3–B3',{midi:[52,55,59]})]
+    description:'Beş sekizlik sayımı: 1-2 / 1-2-3. Sol el basını ve sağ el akorunu ritimde tut.',defaultBpm:90,accent:[0,2],
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('rest','ES','–'),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('rest','ES','–'),step('chord','Em','E4–G4–B4',{midi:[64,67,71]})]
   },
   {
     id:'em-am',level:6,title:'Em → Am · Akor değişimi',meter:'4/4',grouping:[1,1,1,1],denominator:4,
-    description:'Bir ölçü Em, ardından bir ölçü Am. Bas ve akoru beraber değiştir.',defaultBpm:65,accent:[0,2],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]})],
-    alternate:[step('bass','LA','A1',{midi:[33]}),step('chord','Am','A2–C3–E3',{midi:[45,48,52]}),step('bass','Mİ','E2',{midi:[40]}),step('chord','Am','A2–C3–E3',{midi:[45,48,52]})]
+    description:'Bir ölçü Em, ardından bir ölçü Am. Bas sol elde, akor sağ elde; iki ölçüde akoru değiştir.',defaultBpm:65,accent:[0,2],
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]})],
+    alternate:[step('bass','LA','A1',{midi:[33]}),step('chord','Am','A3–C4–E4',{midi:[57,60,64]}),step('bass','Mİ','E2',{midi:[40]}),step('chord','Am','A3–C4–E4',{midi:[57,60,64]})]
   },
   {
     id:'em-b7',level:7,title:'Em → B7 · Dönüş',meter:'4/4',grouping:[1,1,1,1],denominator:4,
     description:'Em ve B7 arasında iki ölçülük alıştırma. B7 için dört ses gereklidir.',defaultBpm:60,accent:[0,2],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]})],
-    alternate:[step('bass','Sİ','B1',{midi:[35]}),step('chord','B7','B2–D♯3–F♯3–A3',{midi:[47,51,54,57]}),step('bass','FA♯','F♯2',{midi:[42]}),step('chord','B7','B2–D♯3–F♯3–A3',{midi:[47,51,54,57]})]
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]})],
+    alternate:[step('bass','Sİ','B1',{midi:[35]}),step('chord','B7','B3–D♯4–F♯4–A4',{midi:[59,63,66,69]}),step('bass','FA♯','F♯2',{midi:[42]}),step('chord','B7','B3–D♯4–F♯4–A4',{midi:[59,63,66,69]})]
   }
 ];
 
@@ -52,6 +52,7 @@ export const noteName = n => {
 };
 export const pitchClass=n=>((n%12)+12)%12;
 export const expectedMidi = event=>Array.isArray(event?.midi)?event.midi:[];
+export const handName = kind=>kind==='bass'?'SOL EL · BAS':kind==='chord'?'SAĞ EL · AKOR':'ES';
 
 // Bas için nota sınıfı ve yaklaşık oktav, akor için tüm bileşen sesler gerekir.
 export function matchEvent(expected, actual, {strictBassOctave=false}={}) {

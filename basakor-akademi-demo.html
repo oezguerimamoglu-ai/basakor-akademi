@@ -55,7 +55,7 @@
         </div>
         <div class="barhead"><strong>Vuruş haritası</strong><span id="grouping">1 + 1 + 1 + 1</span></div>
         <div class="beatgrid" id="beats" aria-label="Ritim adımları"></div>
-        <div class="feedback" id="feedback" role="status" aria-live="polite">Başlat'a bas ve ilk vuruşta kalın Mi çal.</div>
+        <div class="feedback" id="feedback" role="status" aria-live="polite">Başlat'a bas; bası sol elinle, akoru sağ elinle çal.</div>
         <div class="legend"><span><i class="dot bassdot"></i> Bas</span><span><i class="dot chorddot"></i> Akor</span><span><i class="dot restdot"></i> Es</span></div>
       </section>
 
@@ -63,7 +63,7 @@
         <div class="section-head"><h2 id="heading-pads"><span class="number">03</span> Buradan da çal</h2><span class="hint">Dokunmatik çalışma</span></div>
         <p class="subtle">Davul vuruşuna denk gelecek şekilde doğru bas veya akor tuşuna dokun. Bilgisayarda fare veya klavye ile de çalışabilirsin.</p>
         <div class="padgrid" id="pads"></div>
-        <div class="barhead keyboardHead"><strong>Sol elin için nota rehberi</strong><span>MIDI numaraları gösterilir</span></div>
+        <div class="barhead keyboardHead"><strong>Sol el bası · sağ el akoru</strong><span>MIDI numaraları gösterilir</span></div>
         <div class="keyboardwrap"><div id="keyboard" class="keyboard" aria-label="Piyano klavyesi görseli"></div></div>
         <p class="meta">🎵 Ekrandaki akor tuşları üç veya dört notayı birlikte çalar. Gerçek Pa4X'te bunları kendin aynı anda basmalısın.</p>
       </section>
@@ -82,16 +82,16 @@
         <button id="connect" class="btn secondary full">MIDI bağlantısını aç</button>
         <div id="midiStatus" class="device-status">Henüz MIDI bağlantısı yok. Ekrandaki bas–akor tuşlarıyla hemen çalışabilirsin.</div>
         <label class="field" for="device"><span>MIDI giriş cihazı</span><select id="device" disabled><option value="">Bağlı cihaz yok</option></select></label>
-        <div class="fields two"><label class="field" for="channel"><span>Giriş kanalı</span><select id="channel"><option value="all">Tümü</option></select></label><label class="field" for="maxnote"><span>En yüksek nota</span><select id="maxnote"><option value="59">B3 (59)</option><option value="60">C4 (60)</option><option value="64">E4 (64)</option><option value="127">Sınırsız</option></select></label></div>
+        <div class="fields two"><label class="field" for="channel"><span>Giriş kanalı</span><select id="channel"><option value="all">Tümü</option></select></label><label class="field" for="maxnote"><span>En yüksek nota</span><select id="maxnote"><option value="71">B4 (71)</option><option value="76">E5 (76)</option><option value="83">B5 (83)</option><option value="127">Sınırsız</option></select></label></div>
         <div class="midimonitor"><span>Son MIDI notası</span><strong id="midiLast">–</strong><span id="clockStatus">MIDI Clock beklenmiyor</span></div>
-        <details><summary>Pa4X bağlantı adımları</summary><ol><li>USB DEVICE (B tipi) portunu Windows bilgisayarına bağla.</li><li>Gerekirse Korg USB-MIDI sürücüsünü kur.</li><li>Bu sayfayı Chrome veya Edge'de HTTPS/localhost üzerinden aç.</li><li>“MIDI bağlantısını aç” seç, ardından Pa4X'te sol elinle tuşlara bas.</li><li>Pa4X davulunu kullanacaksan <b>Global → MIDI → General Controls → Clock Send</b> seçeneğini etkinleştir. Cihaz her açıldığında yeniden kontrol et.</li><li>Yanlış kanal veya üst el notaları gelirse kanal ve en yüksek nota sınırını değiştir.</li></ol></details>
+        <details><summary>Pa4X bağlantı adımları</summary><ol><li>USB DEVICE (B tipi) portunu Windows bilgisayarına bağla.</li><li>Gerekirse Korg USB-MIDI sürücüsünü kur.</li><li>Bu sayfayı Chrome veya Edge'de HTTPS/localhost üzerinden aç.</li><li>“MIDI bağlantısını aç” seç, ardından Pa4X'te bas notalarını sol elinle, akorları sağ elinle çal.</li><li>Pa4X davulunu kullanacaksan <b>Global → MIDI → General Controls → Clock Send</b> seçeneğini etkinleştir. Cihaz her açıldığında yeniden kontrol et.</li><li>Yanlış kanal veya üst el notaları gelirse kanal ve en yüksek nota sınırını değiştir.</li></ol></details>
       </section>
       <section class="panel help" aria-labelledby="heading-help">
         <h2 id="heading-help">📖 Ders notu</h2>
         <ul class="instructions" id="instructions"></ul>
         <p class="meta">“Mi karar” her zaman Mi minör demek değildir. Buradaki Em/Am/B7 dersleri el koordinasyonu içindir; makam derslerini ayrıca geliştireceğiz.</p>
       </section>
-      <section class="panel tips"><h2>💡 Nasıl çalışmalı?</h2><p>Önce 65 BPM'de 8 ölçü boyunca yalnızca sol eli kullan. %80 başarıya ulaştığında tempoyu artır. Sağ el melodisini sonraki aşamada ekle.</p></section>
+      <section class="panel tips"><h2>💡 Nasıl çalışmalı?</h2><p>Önce 65 BPM'de 8 ölçü boyunca sol elde bas, sağ elde akor çalış. %80 başarıya ulaştığında tempoyu artır.</p></section>
     </aside>
   </div>
   <footer>BasAkor Akademi v0.2.0 · Veriler bu cihazın tarayıcısında saklanır · Sesler sentetiktir · Pa4X MIDI Clock özelliği cihazda henüz test edilmedi.</footer>
@@ -104,41 +104,41 @@ const step=(kind,label,notes,options={})=>({kind,label,notes,...options});
 const LESSONS = [
   {
     id:'em-44', level:1, title:'Mi minör · İlk adım', meter:'4/4', grouping:[1,1,1,1], denominator:4,
-    description:'DUM–ÇAK–DUM–ÇAK. Birinci ve üçüncü vuruşta bas; ikinci ve dördüncüde akor.',
+    description:'DUM–ÇAK–DUM–ÇAK. Sol elde birinci ve üçüncü vuruşta bas; sağ elde ikinci ve dördüncüde akor.',
     defaultBpm:65, accent:[0,2],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]})]
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]})]
   },
   {
     id:'em-44-variation', level:2, title:'4/4 · İkinci vuruş', meter:'4/4', grouping:[1,1,1,1], denominator:4,
     description:'Mi basıyla başla, ikinci bası Si’ye kaydır; düzeni 8 ölçü boyunca koru.',defaultBpm:85,accent:[0,2],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]})]
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]})]
   },
   {
     id:'em-98',level:3,title:'9/8 · 2+2+2+3',meter:'9/8',grouping:[2,2,2,3],denominator:8,
     description:'Dokuz sekizlik: 2+2+2+3. Bu sadece koordinasyon kalıbıdır; yöresel ritim iddiası yoktur.',defaultBpm:90,accent:[0,2,4,6],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('rest','ES','–'),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('rest','ES','–'),step('bass','Sİ','B1',{midi:[35]}),step('rest','ES','–'),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('rest','ES','–'),step('rest','ES','–')]
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('rest','ES','–'),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('rest','ES','–'),step('bass','Sİ','B1',{midi:[35]}),step('rest','ES','–'),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('rest','ES','–'),step('rest','ES','–')]
   },
   {
     id:'em-78',level:4,title:'7/8 · 2+2+3',meter:'7/8',grouping:[2,2,3],denominator:8,
     description:'Yedi sekizlik sayımı: 1-2 / 1-2 / 1-2-3. Son grubun uzunluğunu hisset.',defaultBpm:90,accent:[0,2,4],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('rest','ES','–'),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('rest','ES','–'),step('bass','Sİ','B1',{midi:[35]}),step('rest','ES','–'),step('chord','Em','E3–G3–B3',{midi:[52,55,59]})]
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('rest','ES','–'),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('rest','ES','–'),step('bass','Sİ','B1',{midi:[35]}),step('rest','ES','–'),step('chord','Em','E4–G4–B4',{midi:[64,67,71]})]
   },
   {
     id:'em-58',level:5,title:'5/8 · 2+3',meter:'5/8',grouping:[2,3],denominator:8,
-    description:'Beş sekizlik sayımı: 1-2 / 1-2-3. Bas ve akor sırasını kaybetme.',defaultBpm:90,accent:[0,2],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('rest','ES','–'),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('rest','ES','–'),step('chord','Em','E3–G3–B3',{midi:[52,55,59]})]
+    description:'Beş sekizlik sayımı: 1-2 / 1-2-3. Sol el basını ve sağ el akorunu ritimde tut.',defaultBpm:90,accent:[0,2],
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('rest','ES','–'),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('rest','ES','–'),step('chord','Em','E4–G4–B4',{midi:[64,67,71]})]
   },
   {
     id:'em-am',level:6,title:'Em → Am · Akor değişimi',meter:'4/4',grouping:[1,1,1,1],denominator:4,
-    description:'Bir ölçü Em, ardından bir ölçü Am. Bas ve akoru beraber değiştir.',defaultBpm:65,accent:[0,2],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]})],
-    alternate:[step('bass','LA','A1',{midi:[33]}),step('chord','Am','A2–C3–E3',{midi:[45,48,52]}),step('bass','Mİ','E2',{midi:[40]}),step('chord','Am','A2–C3–E3',{midi:[45,48,52]})]
+    description:'Bir ölçü Em, ardından bir ölçü Am. Bas sol elde, akor sağ elde; iki ölçüde akoru değiştir.',defaultBpm:65,accent:[0,2],
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]})],
+    alternate:[step('bass','LA','A1',{midi:[33]}),step('chord','Am','A3–C4–E4',{midi:[57,60,64]}),step('bass','Mİ','E2',{midi:[40]}),step('chord','Am','A3–C4–E4',{midi:[57,60,64]})]
   },
   {
     id:'em-b7',level:7,title:'Em → B7 · Dönüş',meter:'4/4',grouping:[1,1,1,1],denominator:4,
     description:'Em ve B7 arasında iki ölçülük alıştırma. B7 için dört ses gereklidir.',defaultBpm:60,accent:[0,2],
-    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E3–G3–B3',{midi:[52,55,59]})],
-    alternate:[step('bass','Sİ','B1',{midi:[35]}),step('chord','B7','B2–D♯3–F♯3–A3',{midi:[47,51,54,57]}),step('bass','FA♯','F♯2',{midi:[42]}),step('chord','B7','B2–D♯3–F♯3–A3',{midi:[47,51,54,57]})]
+    steps:[step('bass','Mİ','E2',{midi:[40]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]}),step('bass','Sİ','B1',{midi:[35]}),step('chord','Em','E4–G4–B4',{midi:[64,67,71]})],
+    alternate:[step('bass','Sİ','B1',{midi:[35]}),step('chord','B7','B3–D♯4–F♯4–A4',{midi:[59,63,66,69]}),step('bass','FA♯','F♯2',{midi:[42]}),step('chord','B7','B3–D♯4–F♯4–A4',{midi:[59,63,66,69]})]
   }
 ];
 
@@ -151,6 +151,7 @@ const noteName = n => {
 };
 const pitchClass=n=>((n%12)+12)%12;
 const expectedMidi = event=>Array.isArray(event?.midi)?event.midi:[];
+const handName = kind=>kind==='bass'?'SOL EL · BAS':kind==='chord'?'SAĞ EL · AKOR':'ES';
 
 // Bas için nota sınıfı ve yaklaşık oktav, akor için tüm bileşen sesler gerekir.
 function matchEvent(expected, actual, {strictBassOctave=false}={}) {
@@ -225,20 +226,20 @@ function drums(t,step){const l=state.lesson;const start=l.accent.includes(step);
 function setFeedback(message,type=''){const el=$('feedback');el.className='feedback'+(type?' '+type:'');el.textContent=message;}
 function setStatus(message,playing=false){$('statusPill').textContent=message;$('statusPill').classList.toggle('playing',playing)}
 function showMeasure(num){$('measure').textContent=`Ölçü ${num+1}`;$('measureProgress').textContent=`${Math.min(num+1,runLength)} / ${runLength}`;}
-function describeExpected(expected){if(!expected)return;$('actionType').textContent=expected.kind==='bass'?'BAS':expected.kind==='chord'?'AKOR':'ES';$('actionType').className='actiontype '+expected.kind;$('actionNote').textContent=expected.label;$('actionDetail').textContent=expected.notes;const activeNotes=expected.midi||[];document.querySelectorAll('.key').forEach(key=>key.classList.toggle('expect',activeNotes.includes(Number(key.dataset.note))));}
+function describeExpected(expected){if(!expected)return;$('actionType').textContent=handName(expected.kind);$('actionType').className='actiontype '+expected.kind;$('actionNote').textContent=expected.label;$('actionDetail').textContent=expected.notes;const activeNotes=expected.midi||[];document.querySelectorAll('.key').forEach(key=>key.classList.toggle('expect',activeNotes.includes(Number(key.dataset.note))));}
 function lessonMarkup(){const l=state.lesson;$('meterTag').textContent=`${l.meter} · ${l.grouping.join('+')}`;$('levelTag').textContent=`Ders ${l.level} / ${LESSONS.length}`;$('lessonDescription').textContent=l.description;$('grouping').textContent=l.grouping.join(' + ');
-  const hints=l.steps.map((s,i)=>`<li><span class="highlight">${i+1}. vuruş:</span> ${s.kind==='rest'?'Es (çalma)':s.kind==='bass'?`${s.label} bas · ${s.notes}`:`${s.label} akor · ${s.notes}`}</li>`);
+  const hints=l.steps.map((s,i)=>`<li><span class="highlight">${i+1}. vuruş:</span> ${s.kind==='rest'?'Es (çalma)':s.kind==='bass'?`Sol el bas ${s.label} · ${s.notes}`:`Sağ el akor ${s.label} · ${s.notes}`}</li>`);
   $('instructions').innerHTML=hints.join('');
   drawBeats(0);renderPads();showMeasure(0);describeExpected(l.steps[0]);updateScore();
 }
 function drawBeats(measure){const l=state.lesson,steps=getSteps(l,measure);const beatArea=$('beats');beatArea.style.setProperty('--cols',steps.length);beatArea.className='beatgrid'+(steps.length>4?' long':'');let groupStart=0;const starts=new Set(l.grouping.map(group=>{const i=groupStart;groupStart+=group;return i;}));
-  beatArea.innerHTML=steps.map((s,i)=>`<div class="beat ${s.kind} ${starts.has(i)?'group-start':''}" id="beat-${i}" data-step="${i}"><div class="ord">${i+1}</div><div class="type">${s.kind==='bass'?'BAS':s.kind==='chord'?'AKOR':'ES'}</div><div class="note">${s.label}</div></div>`).join('');
+  beatArea.innerHTML=steps.map((s,i)=>`<div class="beat ${s.kind} ${starts.has(i)?'group-start':''}" id="beat-${i}" data-step="${i}"><div class="ord">${i+1}</div><div class="type">${s.kind==='bass'?'SOL BAS':s.kind==='chord'?'SAĞ AKOR':'ES'}</div><div class="note">${s.label}</div></div>`).join('');
 }
 function relevantPads(){const actions=new Map();for(const e of [...state.lesson.steps,...(state.lesson.alternate||[])])if(e.kind!=='rest')actions.set(e.kind+':'+e.midi.join(','),e);return [...actions.values()];}
-function renderPads(){const items=relevantPads();$('pads').innerHTML=items.map((s,i)=>`<button class="pad ${s.kind}" data-index="${i}" aria-label="${s.kind==='bass'?'Bas':'Akor'} ${s.label}">${s.label}<small>${s.kind==='bass'?'BAS':'AKOR'} · ${s.notes}</small></button>`).join('');
+function renderPads(){const items=relevantPads();$('pads').innerHTML=items.map((s,i)=>`<button class="pad ${s.kind}" data-index="${i}" aria-label="${s.kind==='bass'?'Sol el bas':'Sağ el akor'} ${s.label}">${s.label}<small>${s.kind==='bass'?'SOL EL · BAS':'SAĞ EL · AKOR'} · ${s.notes}</small></button>`).join('');
   $('pads').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{const e=items[Number(b.dataset.index)];playNotes(e.midi);evaluate(e.midi,performance.now(),'ekran');flashKeys(e.midi)}));
 }
-function drawKeyboard(){const board=$('keyboard');const low=33,high=71;const whites=[];for(let n=low;n<=high;n++)if(![1,3,6,8,10].includes(n%12))whites.push(n);
+function drawKeyboard(){const board=$('keyboard');const low=33,high=83;const whites=[];for(let n=low;n<=high;n++)if(![1,3,6,8,10].includes(n%12))whites.push(n);
   board.innerHTML=whites.map(n=>`<div class="key white" id="key-${n}" data-note="${n}"><span class="key-id">${n}</span><span class="key-label">${n%12===0?'Do':n%12===4?'Mi':n%12===9?'La':n%12===11?'Si':''}</span></div>`).join('');
   for(let n=low;n<=high;n++){if([1,3,6,8,10].includes(n%12)){const prev=whites.filter(x=>x<n).length;const left=(prev-0.3)/whites.length*100;const key=document.createElement('div');key.className='key black';key.dataset.note=n;key.id='key-'+n;key.style.left=left+'%';board.appendChild(key);}}
 }
@@ -292,7 +293,7 @@ async function start(){if(state.playing)return;try{await audio().resume();}catch
   $('play').disabled=true;$('stop').disabled=false;$('lesson').disabled=true;$('sync').disabled=true;$('bpm').disabled=true;$('tap').disabled=true;
   if(state.mode==='app'){
     state.waitingClock=false;state.originMs=performance.now()+320;state.audioStart=state.ctx.currentTime+.320;state.nextScheduled=0;
-    state.timer=setInterval(queuedAudio,25);queuedAudio();setStatus('● Alıştırma çalıyor',true);setFeedback('Hazır! Davulu dinle ve vuruş haritasına göre bas–akor çal.');
+    state.timer=setInterval(queuedAudio,25);queuedAudio();setStatus('● Alıştırma çalıyor',true);setFeedback('Hazır! Davulu dinle; bası sol elinle, akoru sağ elinle çal.');
   }else{
     state.waitingClock=true;state.clock={armed:true,running:false,ticks:0,lastTickMs:0,avgTickMs:0,pulseTimes:[],sourceId:null};setStatus('◌ Pa4X bekleniyor');setFeedback('Pa4X’te MIDI Clock Send aç ve Style START tuşuna bas. Uygulama kendi davulunu çalmayacak.');
   }
