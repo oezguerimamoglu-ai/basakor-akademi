@@ -1,10 +1,11 @@
-# 🎹 BasAkor Akademi v0.3.5
+# 🎹 BasAkor Akademi v0.3.6
 
 Türkçe, sıfır bağımlılıklı bir **Korg Pa4X bas–akor eğitim PWA'sı**. Sol elle bas çizgisi, sağ elle akor çalmayı öğrenmek isteyen bir org müzisyeni için geliştirildi.
 
 ## Şu anda çalışan özellikler
 
 - **14 çalışma kalıbı:** 4/4, 6/8, 5/8, 7/8, 9/8, 12/8; farklı aksak ölçü gruplamaları; Em→Am, Em→B7 ve Am→Em.
+- **MP3'ten çalışma hazırlama (Codespace):** MP3'ü Codespace analiz sunucusuna gönderir; Demucs bas, davul, vokal ve eşliği ayırır, Basic Pitch bası MIDI'ye çevirir, tahmini piano akorlarını MIDI'ye ekler. Birleşik MIDI doğrudan mevcut çalışma akışına aktarılır. Codespace sunucusu gerekir; GitHub Pages bu Python analizini çalıştırmaz.
 - **MIDI şarkıdan çalışma:** `.mid` dosyasını tarayıcıda açar; ölçü, tempo, track/kanal, program ve nota aralıklarını çözümler. Bas ve akor kaynaklarını seçtirip 1/2/4 ölçülük bölümü çalışma döngüsüne dönüştürür.
 - **MIDI oynatıcı:** Dosyanın tamamını çalar; başlat/duraklat, başa sar, konum, hız, kanal sessize alma ve tek kanal dinleme kontrolleri sunar. Hedef karara transpoze dinleme seçeneği vardır; davul kanalı değişmeden kalır. Her kanala farklı General MIDI enstrümanı atanabilir; bu değişiklik yalnızca önizleme sesini etkiler. Sesler tarayıcıda sentezlenir; dosya sunucuya gönderilmez.
 - MIDI'deki kaynak kararını tahmin eder ve düzenlemene izin verir. Hedef varsayılan olarak **Mi karar**dır; bas ve akor notaları aynı aralıkla taşınır, dosyanın majör/minör ilişkisi korunur, davul kanalı transpoze edilmez.
@@ -23,8 +24,8 @@ Türkçe, sıfır bağımlılıklı bir **Korg Pa4X bas–akor eğitim PWA'sı**
 - Deneysel **harici MIDI Clock modu**: Pa4X kendi davulunu çalarken `START` ve `F8` darbelerini takip eder; uygulama davulu sessiz kalır. **Fiziksel cihazla doğrulanmadı**.
 - Her dersin en iyi yüzdesi ve tamamlanan alıştırma sayısı tarayıcının yerel hafızasında saklanır.
 - PWA manifest, çevrimdışı önbellekleme, iPhone/Windows uyumlu responsive arayüz.
-- Sunucu bağlantısına, ödeme hesabına veya bulut veritabanına ihtiyaç duymaz.
-- MIDI dosyası seçildikten sonra yalnızca bu cihazın tarayıcısında işlenir; dosya sunucuya gönderilmez.
+- Temel dersler ve MIDI şarkı çözümleme tarayıcıda yerel çalışır. MP3 analizi için Codespace Python sunucusu gerekir.
+- Seçilen MIDI dosyası bu cihazın tarayıcısında işlenir. MP3 analizi seçilen sesi Codespace'e gönderir; dosya depoya commit edilmez.
 
 ## Windows'ta kullanmak
 
@@ -69,7 +70,7 @@ GitHub Pages yükleme: GitHub hesabında yeni bir `basakor-akademi` repository o
 
 ## Teknik
 
-Sıfır üçüncü taraf bağımlılık. HTML/CSS/JavaScript (ES modules), Web Audio, Web MIDI, Service Worker, localStorage. MIDI çözümleme `midi-file.mjs` içindedir; nota/timing testleri `tests.test.mjs`, arayüz smoke testleri `tests-ui.test.mjs` dosyalarındadır.
+Uygulamanın statik arayüzünde üçüncü taraf JavaScript bağımlılığı yoktur. HTML/CSS/JavaScript (ES modules), Web Audio, Web MIDI, Service Worker, localStorage. Codespace MP3 sunucusu Python, Demucs, Basic Pitch, BeatNetLite, librosa ve mido kullanır. MIDI çözümleme `midi-file.mjs` içindedir; nota/timing testleri `tests.test.mjs`, arayüz smoke testleri `tests-ui.test.mjs` dosyalarındadır.
 
 Test: **`node --test tests.test.mjs tests-ui.test.mjs`** (Node.js 18+).
 
@@ -79,7 +80,7 @@ Bas gitar kayıtları Andrea Biasior tarafından Yamaha RBX ile kaydedilmiş ve 
 
 E-piyano örnekleri Roberto tarafından FreePats için Hexter FM synthesizer ile üretilmiş; Yamaha DX7 e-piyano tarzı klasik ve parlak tonları taklit eder. CC0 1.0 lisanslıdır: [FreePats Synthesized Piano](https://freepats.zenvoid.org/ElectricPiano/synthesized-piano.html) · [FM Piano 1](https://github.com/freepats/fm-piano1) · [FM Piano 2](https://github.com/freepats/fm-piano2). Uygulamadaki kısa WAV örnekleri, kaynak seslerin dönüştürülmüş ve yeniden örneklenmiş sürümleridir.
 
-Güvenlik: Dış sunucuya müzik, MIDI veya kişisel veri gönderilmez. MIDI yalnızca izin verildiğinde okunur. Diğer web uygulamalarının MIDI erişim izinleri ayrı olabilir.
+Gizlilik: MIDI yükleyicisi dosyayı tarayıcıda işler. MP3 analiz paneli dosyayı yalnızca açtığın Codespace sunucusuna gönderir; GitHub deposuna veya Pages'e yüklemez. Codespaces port görünürlüğünü Private bırak. MIDI yalnızca izin verildiğinde okunur.
 
 ## Bilinen sınırlamalar ve sonraki geliştirme
 
