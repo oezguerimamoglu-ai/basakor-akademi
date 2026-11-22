@@ -1,10 +1,13 @@
-# 🎹 BasAkor Akademi v0.2.7
+# 🎹 BasAkor Akademi v0.3.0
 
 Türkçe, sıfır bağımlılıklı bir **Korg Pa4X bas–akor eğitim PWA'sı**. Sol elle bas çizgisi, sağ elle akor çalmayı öğrenmek isteyen bir org müzisyeni için geliştirildi.
 
 ## Şu anda çalışan özellikler
 
 - **14 çalışma kalıbı:** 4/4, 6/8, 5/8, 7/8, 9/8, 12/8; farklı aksak ölçü gruplamaları; Em→Am, Em→B7 ve Am→Em.
+- **MIDI şarkıdan çalışma:** `.mid` dosyasını tarayıcıda açar; ölçü, tempo, track/kanal, program ve nota aralıklarını çözümler. Bas ve akor kaynaklarını seçtirip 1/2/4 ölçülük bölümü çalışma döngüsüne dönüştürür.
+- MIDI'deki kaynak kararını tahmin eder ve düzenlemene izin verir. Hedef varsayılan olarak **Mi karar**dır; bas ve akor notaları aynı aralıkla taşınır, dosyanın majör/minör ilişkisi korunur, davul kanalı transpoze edilmez.
+- Etkin piyano kanalı yoksa çok sesli bir armoni kanalı (ör. gitar veya yaylılar) akor kaynağı olarak önerilir; akor çalışması mevcut e-piyano tonlarıyla sunulur.
 - **Seviye ve kalıp seçimi:** Başlangıç, ritim kalıpları, akor geçişleri veya tüm kalıplar; ilk açılışta 14 kalıbın tamamı seçilebilir.
 - Sekizlik bas yürüyüşleri, oktav içi hareketler ve akor geçişlerinde kök/beşinci/geçiş sesleriyle ölçü içinde daha hareketli sol el çizgileri.
 - Metronom/davul sesi (Web Audio sentezi) ve 45–160 BPM, dokunarak tempo belirleme.
@@ -18,6 +21,7 @@ Türkçe, sıfır bağımlılıklı bir **Korg Pa4X bas–akor eğitim PWA'sı**
 - Her dersin en iyi yüzdesi ve tamamlanan alıştırma sayısı tarayıcının yerel hafızasında saklanır.
 - PWA manifest, çevrimdışı önbellekleme, iPhone/Windows uyumlu responsive arayüz.
 - Sunucu bağlantısına, ödeme hesabına veya bulut veritabanına ihtiyaç duymaz.
+- MIDI dosyası seçildikten sonra yalnızca bu cihazın tarayıcısında işlenir; dosya sunucuya gönderilmez.
 
 ## Windows'ta kullanmak
 
@@ -62,7 +66,7 @@ GitHub Pages yükleme: GitHub hesabında yeni bir `basakor-akademi` repository o
 
 ## Teknik
 
-Sıfır üçüncü taraf bağımlılık. HTML/CSS/JavaScript (ES modules), Web Audio, Web MIDI, Service Worker, localStorage. Kod ve testler `music.mjs`, `app.mjs`, `tests.test.mjs` dosyalarında.
+Sıfır üçüncü taraf bağımlılık. HTML/CSS/JavaScript (ES modules), Web Audio, Web MIDI, Service Worker, localStorage. MIDI çözümleme `midi-file.mjs` içindedir; nota/timing testleri `tests.test.mjs`, arayüz smoke testleri `tests-ui.test.mjs` dosyalarındadır.
 
 Test: **`node --test tests.test.mjs`** (Node.js 18+).
 
@@ -77,7 +81,9 @@ Güvenlik: Dış sunucuya müzik, MIDI veya kişisel veri gönderilmez. MIDI yal
 ## Bilinen sınırlamalar ve sonraki geliştirme
 
 - Gerçek Pa4X ile entegre test, MIDI kanalı algılama rehberi, ölçü başı Clock senkronizasyonu/latency kalibrasyonu.
-- Çoklu ölçü, gerçek Türk usullerine özgü davul örnekleri, akor ters çevrimleri ve değiştirilebilir/ithal edilebilir şarkı dersleri.
+- MIDI ton tahmini armoni sezgiseldir; düşük güvenli tahminleri kullanıcı doğrulamalıdır. Etkin piyano kanalı yoksa armoni kaynağı olarak başka bir çok sesli kanal seçilmelidir.
+- Tempo haritası analiz edilir; oluşturulan bölüm şu sürümde seçilen ölçünün başlangıç temposunda sabit çalar. Ölçü işareti değişen MIDI dosyaları analiz edilir ancak çalışma hazırlama devre dışı kalır.
+- Gerçek Türk usullerine özgü davul örnekleri, akor ters çevrimlerini düzenleme ve dışa aktarılabilir transpoze MIDI.
 - Puanlama, ekran/cihaz gecikmesine duyarlı bir **alıştırma göstergesidir**, laboratuvar hassasiyetinde ölçüm değildir.
 - MIDI Clock modu bazı ritim başlangıç/pause davranışlarında cihazdan gelen farklı mesajlara göre kalibre edilmelidir.
 - Mevcut tarayıcı verisini temizlersen yerel rekorlar silinebilir.

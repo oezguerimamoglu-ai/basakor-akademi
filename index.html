@@ -14,7 +14,7 @@
 <div class="shell">
   <header class="topbar">
     <div class="brand"><div class="brand-icon" aria-hidden="true">♫</div><div>BasAkor <span>Akademi</span><small>PA4X PRATİK STÜDYOSU</small></div></div>
-  <div class="pill" id="statusPill" role="status">● Hazır · v0.2.7</div>
+  <div class="pill" id="statusPill" role="status">● Hazır · v0.3.0</div>
   </header>
   <section class="hero">
     <div class="eyebrow">🎹 MI KARAR İLE BAŞLA · RİTMİ KENDİN YÖNET</div>
@@ -24,6 +24,26 @@
 
   <div class="appgrid">
     <main class="stack">
+      <section class="panel midi-import" aria-labelledby="heading-import">
+        <div class="section-head"><h2 id="heading-import"><span class="number">00</span> MIDI şarkıdan çalışma hazırla</h2><span class="hint">Dosya cihazında analiz edilir</span></div>
+        <p class="subtle">Bir .mid dosyası seç. Uygulama ölçü ve tempoyu inceler, bas ile akor kanallarını ayırır ve çalışmayı varsayılan olarak Mi kararına taşır. Majör/minör yapısı korunur; davul notaları transpoze edilmez.</p>
+        <label class="file-picker" for="midiFile"><span>🎼 MIDI dosyası seç</span><input id="midiFile" type="file" accept=".mid,.midi,audio/midi,audio/x-midi"></label>
+        <p id="midiImportStatus" class="device-status" role="status">Henüz MIDI şarkısı seçilmedi.</p>
+        <div id="midiAnalysis" class="midi-analysis" hidden>
+          <div id="midiSummary" class="midi-summary"></div>
+          <p id="midiMappingHint" class="mapping-hint"></p>
+          <div class="fields midi-map">
+            <label class="field" for="midiBassChannel"><span>Bas kanalı</span><select id="midiBassChannel"></select></label>
+            <label class="field" for="midiChordChannel"><span>Akor kaynağı</span><select id="midiChordChannel"></select></label>
+            <label class="field" for="midiSourceKey"><span>Kaynak karar · tahmini</span><select id="midiSourceKey"></select></label>
+            <label class="field" for="midiTargetKey"><span>Hedef karar</span><select id="midiTargetKey"></select></label>
+            <label class="field" for="midiStartBar"><span>Başlangıç ölçüsü</span><select id="midiStartBar"></select></label>
+            <label class="field" for="midiBarCount"><span>Döngü uzunluğu</span><select id="midiBarCount"><option value="1">1 ölçü</option><option value="2" selected>2 ölçü</option><option value="4">4 ölçü</option></select></label>
+          </div>
+          <button id="prepareMidiLesson" class="btn primary full">Mi karar çalışmasını hazırla</button>
+          <div id="midiChannelSummary" class="channel-summary"></div>
+        </div>
+      </section>
       <section class="panel settings" aria-labelledby="heading-settings">
         <div class="section-head"><h2 id="heading-settings"><span class="number">01</span> Çalışmayı seç</h2><span class="hint" id="levelTag">Başlangıç</span></div>
         <div class="fields">
@@ -88,8 +108,8 @@
       <section class="panel tips"><h2>💡 Nasıl çalışmalı?</h2><p>Önce 65 BPM'de 8 ölçü boyunca sol elde bas, sağ elde akor çalış. %80 başarıya ulaştığında tempoyu artır.</p></section>
     </aside>
   </div>
-  <footer>BasAkor Akademi v0.2.7 · Bas: Andrea Biasior / FreePats · E-piyano: Roberto / FreePats FM Piano 1–2 · CC0 1.0 · Veriler bu cihazın tarayıcısında saklanır · Pa4X MIDI Clock özelliği cihazda henüz test edilmedi.</footer>
+  <footer>BasAkor Akademi v0.3.0 · Bas: Andrea Biasior / FreePats · E-piyano: Roberto / FreePats FM Piano 1–2 · CC0 1.0 · MIDI dosyaları bu cihazda işlenir · Pa4X MIDI Clock özelliği cihazda henüz test edilmedi.</footer>
 </div>
-<script type="module" src="./app.mjs?v=0.2.7"></script>
+<script type="module" src="./app.mjs?v=0.3.0"></script>
 </body>
 </html>
