@@ -1,14 +1,14 @@
 # MP3 analizi için Codespaces
 
-Bu deneysel dal, BasAkor Akademi uygulamasının yayımlanan `main` dalından ayrı bir Python çalışma alanı kurar. Codespace; Demucs ile bas kanalını ayırır, ardından Basic Pitch ile bu kanaldan MIDI notaları üretir. Bu çıktı otomatik olarak kusursuz bir bas transkripsiyonu anlamına gelmez; sonucu dinleyip düzenlemek gerekir.
+Bu deneysel dal, yayımlanan `main` dalından ayrıdır. MP3 iş akışı Demucs ile dört ses gövdesi üretir; Basic Pitch bas gövdesini MIDI'ye çevirir; BeatNetLite BPM ve ölçü uzunluğu tahmini yapar; librosa eşlik gövdesinden ilk akor tahminlerini çıkarır.
 
 ## Codespace'i açma
 
-Depodaki `mp3-analysis-codespace` dalında **Code → Codespaces → Create codespace on mp3-analysis-codespace** seçin. Codespace oluşturulurken iki çekirdekli bir makine yeterli bir başlangıçtır. İlk kurulum ffmpeg, CPU sürümü PyTorch, Demucs ve Basic Pitch'i indirir; ilk ses ayırma çalıştırması ayrıca Demucs model ağırlıklarını indirir.
+Depodaki `mp3-analysis-codespace` dalında **Code → Codespaces** bölümünden Codespace'i açın. İlk kurulum ffmpeg, CPU PyTorch, Demucs, Basic Pitch, librosa ve sabitlenmiş BeatNetLite kaynak/model dosyalarını indirir. Mevcut Codespace'e bu dal güncellendikten sonra geçiyorsanız terminalde `git pull origin mp3-analysis-codespace` ve `bash scripts/setup-beatnetlite.sh` çalıştırın.
 
 ## MP3 ile çalışma
 
-1. VS Code Explorer'da `audio-input` klasörünü oluşturun ve MP3 dosyanızı buraya yükleyin.
+1. VS Code Explorer'da `audio-input` klasörünü oluşturup MP3 dosyanızı buraya yükleyin.
 2. Terminalde çalıştırın:
 
    ```bash
@@ -16,11 +16,23 @@ Depodaki `mp3-analysis-codespace` dalında **Code → Codespaces → Create code
    ```
 
 3. Sonuçlar `analysis/sarki/` altında oluşur:
-   - `stems/htdemucs/sarki/bass.wav`: Demucs'un ayırdığı bas kanalı
-   - `midi/`: Basic Pitch'in ürettiği MIDI ve ek dosyalar
+   - `stems/htdemucs/sarki/bass.wav`: ayrılmış bas
+   - `stems/htdemucs/sarki/other.wav`: eşlik ve armonik enstrümanlar
+   - `stems/htdemucs/sarki/drums.wav` ve `vocals.wav`: davul ve vokal
+   - `midi/`: bas gövdesinden Basic Pitch MIDI ve yan çıktıları
+   - `music-analysis.json`: BPM, tahmini ölçü ve zaman damgalı akorlar
+   - `chords.csv` ve `chords.txt`: okunabilir akor özeti
 
-Dosya adında boşluk veya Türkçe karakter varsa tırnakları koruyun. İşlem Codespaces'in CPU'sunda çalıştığı için 4–5 dakikalık bir şarkının ayrıştırılması birkaç dakika veya daha uzun sürebilir.
+Akor penceresini değiştirmek için `--chord-beats` kullanabilirsiniz; örneğin `--chord-beats 1` her vuruşta, `--chord-beats 4` dört vuruşta bir tahmin yapar. Aynı akor pencereleri birleştirilir.
+
+## Sonuçların sınırları
+
+BPM ve vuruş/ölçü sayısı bir model tahminidir. Model ölçüdeki vuruş sayısını tahmin eder; ekranda gösterilen payda (ör. 7/8) yaygın kullanıma göre eşlenir ve kulakla doğrulanmalıdır. Akorlar eşlik gövdesindeki kromaya göre üçlü ve yaygın yedili şablonlarıyla tahmin edilir; bunlar nota dökümü ya da doğrulanmış armoni değildir. `chords.csv` içindeki benzerlik puanı kalibre edilmiş bir olasılık değildir.
+
+Demucs ve Basic Pitch çıktıları da otomatik transkripsiyonun kusursuz olduğu anlamına gelmez. Bas MIDI'sini dinleyip kontrol edin. Bir ölçü penceresindeki akor değişimleri kaçabilir; `--chord-beats` değerini düşürerek daha sık tahmin alabilirsiniz.
 
 ## Gizlilik ve Git
 
-MP3'ler için `audio-input/`, üretilen dosyalar için `analysis/` Git tarafından yok sayılır. Bu yerel dosyaları depoya commit etmeyin. Codespace'i kullandıktan sonra GitHub Codespaces menüsünden durdurabilirsiniz.
+MP3 girişleri için `audio-input/`, oluşturulan sonuçlar için `analysis/` Git tarafından yok sayılır. Bu yerel dosyaları depoya commit etmeyin. Kod ve analiz betikleri deneysel dalda kalır; yayımdaki `main` dalı değişmez. BeatNetLite atfı ve lisansı için `THIRD_PARTY_NOTICES.md` dosyasına bakın.
+
+İşlem Codespaces CPU'sunda çalışır ve özellikle ilk Demucs model indirmesinde birkaç dakika sürebilir. Kullanım bittiğinde Codespace'i durdurabilirsiniz.
