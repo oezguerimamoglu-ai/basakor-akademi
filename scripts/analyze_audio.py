@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 
 from music_metrics import estimate_chords, estimate_rhythm
+from practice_midi import make_practice_midi
 
 
 def write_chord_outputs(output_root: Path, chords: list[dict[str, object]]) -> tuple[Path, Path]:
@@ -121,6 +122,20 @@ def main() -> int:
         rhythm["beat_grid"],
         beats_per_window=args.chord_beats,
     )
+    bass_midi_candidates = sorted(midi_output.glob("*.mid"))
+    if not bass_midi_candidates:
+        raise FileNotFoundError(f"Basic Pitch finished but no MIDI was found in {midi_output}")
+    bass_midi_path = midi_output / "bass_basic_pitch.mid"
+    if not bass_midi_path.is_file():
+        bass_midi_path = bass_midi_candidates[0]
+    practice_midi_path = output_root / "practice.mid"
+    make_practice_midi(
+        bass_midi_path,
+        practice_midi_path,
+        tempo_bpm=float(rhythm["tempo_bpm"]),
+        time_signature=str(rhythm["time_signature_estimate"]),
+        chords=chords,
+    )
     csv_path, text_path = write_chord_outputs(output_root, chords)
 
     report = {
@@ -135,6 +150,8 @@ def main() -> int:
             "major/minor triads and common seventh chords."
         ),
         "chord_segments": chords,
+        "practice_midi": practice_midi_path.name,
+        "practice_midi_tracks": ["Basic Pitch bass", "estimated piano chords"],
         "limitations": [
             "BPM and beats per bar are model estimates and can be ambiguous.",
             "The displayed time-signature denominator is mapped to common notation; confirm it by listening.",
@@ -149,6 +166,7 @@ def main() -> int:
 
     print(f"Done. Bass stem: {bass_stem}")
     print(f"Bass MIDI and related files: {midi_output}")
+    print(f"Combined practice MIDI: {practice_midi_path}")
     print(f"Estimated tempo: {rhythm['tempo_bpm']} BPM")
     print(
         f"Estimated meter: {rhythm['time_signature_estimate']} "
