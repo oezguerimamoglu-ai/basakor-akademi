@@ -1,4 +1,4 @@
-# 🎹 BasAkor Akademi v0.2.2
+# 🎹 BasAkor Akademi v0.2.3
 
 Türkçe, sıfır bağımlılıklı bir **Korg Pa4X bas–akor eğitim PWA'sı**. Sol elle bas çizgisi, sağ elle akor çalmayı öğrenmek isteyen bir org müzisyeni için geliştirildi.
 
@@ -7,6 +7,7 @@ Türkçe, sıfır bağımlılıklı bir **Korg Pa4X bas–akor eğitim PWA'sı**
 - **7 ders:** 4/4 Em, daha hızlı 4/4, 9/8 (2+2+2+3), 7/8 (2+2+3), 5/8 (2+3), iki ölçüde Em→Am ve Em→B7.
 - Metronom/davul sesi (Web Audio sentezi) ve 45–160 BPM, dokunarak tempo belirleme.
 - **İki gerçek bas gitar tonu:** Yamaha RBX parmak bası ve penayla bas. Bas sesleri CC0 1.0 lisanslı FreePats / Andrea Biasior kayıtlarından gelir; örnekler mobil Safari için WAV biçimine dönüştürülüp uygulamayla birlikte sunulur.
+- **İki e-piyano tonu:** DX7 tarzı klasik ve parlak FM e-piyano örnekleri. Akorlar seçilen CC0 örneklerinden çalar; sesler FreePats için Hexter yazılım sentezleyicisinden kaydedilmiştir.
 - Akıllı 8 ölçülük alıştırma, bas–akor adımı görselleştirme, sesli örnek isteğe bağlı.
 - Sol el bası ve sağ el akoru ayrı gösteren ekran tuşları; sağ el akorları E4 ve üzeri register'dadır.
 - Doğru nota, akor bileşenleri, erken/geç vuruş geri bildirimi.
@@ -65,7 +66,9 @@ Test: **`node --test tests.test.mjs`** (Node.js 18+).
 
 ## Ses örneklerinin kaynağı
 
-Bas gitar kayıtları Andrea Biasior tarafından Yamaha RBX ile kaydedilmiş ve FreePats'e CC0 1.0 (kamu malı adaması) ile sunulmuştur. Kaynak: [FreePats Clean Electric Bass](https://freepats.zenvoid.org/ElectricGuitar/clean-electric-bass.html) · [kaynak depo ve lisans](https://github.com/freepats/electric-bass-YR). Uygulamadaki altı kısa WAV dosyası bu gerçek kayıtların dönüştürülmüş/yeniden örneklenmiş sürümleridir.
+Bas gitar kayıtları Andrea Biasior tarafından Yamaha RBX ile kaydedilmiş ve FreePats'e CC0 1.0 (kamu malı adaması) ile sunulmuştur. Kaynak: [FreePats Clean Electric Bass](https://freepats.zenvoid.org/ElectricGuitar/clean-electric-bass.html) · [kaynak depo ve lisans](https://github.com/freepats/electric-bass-YR).
+
+E-piyano örnekleri Roberto tarafından FreePats için Hexter FM synthesizer ile üretilmiş; Yamaha DX7 e-piyano tarzı klasik ve parlak tonları taklit eder. CC0 1.0 lisanslıdır: [FreePats Synthesized Piano](https://freepats.zenvoid.org/ElectricPiano/synthesized-piano.html) · [FM Piano 1](https://github.com/freepats/fm-piano1) · [FM Piano 2](https://github.com/freepats/fm-piano2). Uygulamadaki kısa WAV örnekleri, kaynak seslerin dönüştürülmüş ve yeniden örneklenmiş sürümleridir.
 
 Güvenlik: Dış sunucuya müzik, MIDI veya kişisel veri gönderilmez. MIDI yalnızca izin verildiğinde okunur. Diğer web uygulamalarının MIDI erişim izinleri ayrı olabilir.
 

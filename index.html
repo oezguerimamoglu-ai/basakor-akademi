@@ -14,7 +14,7 @@
 <div class="shell">
   <header class="topbar">
     <div class="brand"><div class="brand-icon" aria-hidden="true">♫</div><div>BasAkor <span>Akademi</span><small>PA4X PRATİK STÜDYOSU</small></div></div>
-  <div class="pill" id="statusPill" role="status">● Hazır · v0.2.2</div>
+  <div class="pill" id="statusPill" role="status">● Hazır · v0.2.3</div>
   </header>
   <section class="hero">
     <div class="eyebrow">🎹 MI KARAR İLE BAŞLA · RİTMİ KENDİN YÖNET</div>
@@ -31,6 +31,7 @@
           <div class="field"><label for="bpm"><span>Tempo <strong id="tempoValue">65 BPM</strong></span></label><input type="range" id="bpm" min="45" max="160" step="1" value="65"></div>
           <label class="field" for="sync"><span>Davul kaynağı</span><select id="sync"><option value="app">Uygulama davulu</option><option value="clock">Pa4X davulu · MIDI Clock</option></select></label>
           <label class="field wide" for="bassTone"><span>Gerçek bas gitar sesi</span><select id="bassTone"><option value="finger">Parmak bas · Yamaha RBX</option><option value="pick">Penayla bas · Yamaha RBX</option></select></label>
+          <label class="field wide" for="epianoTone"><span>Akor e-piyano tonu</span><select id="epianoTone"><option value="ep1">DX7 E. Piano 1 · klasik</option><option value="ep2">DX7 e-piyano · parlak</option></select></label>
         </div>
         <div class="switches"><label class="check"><input id="demo" type="checkbox"><span>Bas–akor örneğini de çal</span></label><label class="check"><input id="strict" type="checkbox"><span>Bas oktavını kontrol et</span></label></div>
         <div class="transport"><button id="play" class="btn primary">▶ Başlat</button><button id="stop" class="btn secondary" disabled>■ Durdur</button><button id="tap" class="btn outline" title="Tempo ayarla">Tempo tut</button></div>
@@ -86,7 +87,7 @@
       <section class="panel tips"><h2>💡 Nasıl çalışmalı?</h2><p>Önce 65 BPM'de 8 ölçü boyunca sol elde bas, sağ elde akor çalış. %80 başarıya ulaştığında tempoyu artır.</p></section>
     </aside>
   </div>
-  <footer>BasAkor Akademi v0.2.2 · Gerçek bas örnekleri: Andrea Biasior / FreePats, CC0 1.0 · Veriler bu cihazın tarayıcısında saklanır · Pa4X MIDI Clock özelliği cihazda henüz test edilmedi.</footer>
+  <footer>BasAkor Akademi v0.2.3 · Bas: Andrea Biasior / FreePats · E-piyano: Roberto / FreePats FM Piano 1–2 · CC0 1.0 · Veriler bu cihazın tarayıcısında saklanır · Pa4X MIDI Clock özelliği cihazda henüz test edilmedi.</footer>
 </div>
 <script type="module" src="./app.mjs"></script>
 </body>

@@ -11,9 +11,9 @@ class MockElement{
   querySelectorAll(){return []}
   get outerHTML(){return `<option value="${this.value}">${this.textContent}</option>`}
 }
-const ids='statusPill levelTag lesson tempoValue bpm sync bassTone demo strict play stop tap sourceHint meterTag measure measureProgress actionType actionNote actionDetail lessonDescription grouping beats feedback pads keyboard success mistakes accuracy progressFill completedMessage reset midiStatus connect device channel maxnote midiLast clockStatus instructions'.split(' ');
+const ids='statusPill levelTag lesson tempoValue bpm sync bassTone epianoTone demo strict play stop tap sourceHint meterTag measure measureProgress actionType actionNote actionDetail lessonDescription grouping beats feedback pads keyboard success mistakes accuracy progressFill completedMessage reset midiStatus connect device channel maxnote midiLast clockStatus instructions'.split(' ');
 const nodes=Object.fromEntries(ids.map(id=>[id,new MockElement(id)]));
-nodes.maxnote.value='83';nodes.channel.value='all';nodes.sync.value='app';nodes.bassTone.value='finger';
+nodes.maxnote.value='83';nodes.channel.value='all';nodes.sync.value='app';nodes.bassTone.value='finger';nodes.epianoTone.value='ep1';
 globalThis.document={getElementById:id=>nodes[id]||null,querySelectorAll:()=>[],createElement:()=>new MockElement(),addEventListener(){},hidden:false};
 globalThis.window={AudioContext:class{currentTime=0;resume(){return Promise.resolve()}},addEventListener(){},confirm:()=>true};
 globalThis.localStorage={getItem:()=>null,setItem(){}};
