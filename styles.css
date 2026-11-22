@@ -40,3 +40,16 @@
 .beatgrid.song-grid{grid-template-columns:repeat(8,minmax(0,1fr))}
 .beatgrid.song-grid .beat{min-height:78px}
 @media(max-width:650px){.file-picker{align-items:stretch;flex-direction:column;gap:10px}.file-picker input{width:100%}.channel-summary,.midi-player-channels{grid-template-columns:1fr}.volume-balance-controls{grid-template-columns:1fr;gap:3px}.midi-player-controls .btn{flex:1 1 30%;padding:9px 6px;font-size:11px}.midi-player-channel{display:grid;grid-template-columns:minmax(0,1fr) auto}.midi-player-channel-label{grid-column:1/-1}.midi-player-instrument{grid-column:1;width:100%;min-width:0}.midi-solo{grid-column:2;grid-row:2}.beatgrid.song-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+.audio-progress,.audio-results{margin-top:15px}
+.audio-progress-head{display:flex;justify-content:space-between;gap:10px;align-items:center;color:#dce8f6;font-size:12px;margin:0 0 8px}
+.audio-progress-head span{color:#a6edc1;font-variant-numeric:tabular-nums}
+.audio-progress progress{width:100%;height:12px;accent-color:#a6edc1}
+.audio-summary{padding:13px;border:1px solid #557963;border-radius:12px;background:#10251f;color:#c8f1d6;font-size:13px;line-height:1.6;margin-bottom:12px}
+.audio-downloads{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.audio-download{display:flex;align-items:center;justify-content:center;min-height:40px;padding:9px 11px;border:1px solid #50617e;border-radius:10px;background:#111d32;color:#d5e6f7;text-align:center;text-decoration:none;font-size:12px;font-weight:700}
+.audio-download:hover{border-color:#9be4bc;color:#a6edc1}
+.audio-chords{margin-top:12px}
+.audio-chords ol{max-height:240px;overflow:auto;padding-left:22px}
+.audio-chords li{padding:3px 0;font-variant-numeric:tabular-nums}
+@media(max-width:650px){.audio-downloads{grid-template-columns:1fr}}
