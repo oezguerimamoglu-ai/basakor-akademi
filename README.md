@@ -1,4 +1,4 @@
-# 🎹 BasAkor Akademi v0.3.4
+# 🎹 BasAkor Akademi v0.3.5
 
 Türkçe, sıfır bağımlılıklı bir **Korg Pa4X bas–akor eğitim PWA'sı**. Sol elle bas çizgisi, sağ elle akor çalmayı öğrenmek isteyen bir org müzisyeni için geliştirildi.
 
@@ -15,6 +15,7 @@ Türkçe, sıfır bağımlılıklı bir **Korg Pa4X bas–akor eğitim PWA'sı**
 - **İki gerçek bas gitar tonu:** Yamaha RBX parmak bası ve penayla bas. Bas sesleri CC0 1.0 lisanslı FreePats / Andrea Biasior kayıtlarından gelir; örnekler mobil Safari için WAV biçimine dönüştürülüp uygulamayla birlikte sunulur.
 - **İki e-piyano tonu:** DX7 tarzı klasik ve parlak FM e-piyano örnekleri. Akorlar seçilen CC0 örneklerinden çalar; sesler FreePats için Hexter yazılım sentezleyicisinden kaydedilmiştir.
 - **Çalışma ses bankası:** Bas ve akor ses seçicilerinde 128 General MIDI programı bulunur. Bu sesler Web Audio senteziyle yaklaşık üretilir; Yamaha bas ve FM e-piyano örnekleri ayrıca seçilebilir.
+- **Bas–akor ses dengesi:** Çalışma ekranında sol el bası ve sağ el akorunun düzeyini ayrı ayarla. Kontroller anında uygulanır, bu cihazda saklanır; davul ve MIDI şarkı önizlemesinden bağımsızdır.
 - Akıllı 8 ölçülük alıştırma, bas–akor adımı görselleştirme, sesli örnek isteğe bağlı.
 - Sol el bası ve sağ el akoru ayrı gösteren ekran tuşları; sağ el akorları E4 ve üzeri register'dadır.
 - Doğru nota, akor bileşenleri, erken/geç vuruş geri bildirimi.
@@ -70,7 +71,7 @@ GitHub Pages yükleme: GitHub hesabında yeni bir `basakor-akademi` repository o
 
 Sıfır üçüncü taraf bağımlılık. HTML/CSS/JavaScript (ES modules), Web Audio, Web MIDI, Service Worker, localStorage. MIDI çözümleme `midi-file.mjs` içindedir; nota/timing testleri `tests.test.mjs`, arayüz smoke testleri `tests-ui.test.mjs` dosyalarındadır.
 
-Test: **`node --test tests.test.mjs`** (Node.js 18+).
+Test: **`node --test tests.test.mjs tests-ui.test.mjs`** (Node.js 18+).
 
 ## Ses örneklerinin kaynağı
 
