@@ -4,6 +4,7 @@ import {MidiFilePlayer,playProgramNote} from './midi-player.mjs';
 
 const $ = id=>document.getElementById(id);
 const KEY='basakor-akademi-progress-v2';
+const MIX_KEY='basakor-akademi-mix-v1';
 const runLength=8;
 const LESSON_GROUPS=[
   {id:'beginner',label:'Başlangıç',levels:[1,2,3,4]},
@@ -12,7 +13,7 @@ const LESSON_GROUPS=[
   {id:'all',label:'Tüm seviyeler',levels:null}
 ];
 const state={
-  lesson:LESSONS[0],levelGroup:'all',bpm:65,mode:'app',ctx:null,playing:false,waitingClock:false,demo:false,strict:false,bassTone:'finger',epianoTone:'ep1',bassBuffers:{},epianoBuffers:{},bassLoading:null,
+  lesson:LESSONS[0],levelGroup:'all',bpm:65,mode:'app',ctx:null,bassMixGain:null,chordMixGain:null,bassVolume:100,chordVolume:100,playing:false,waitingClock:false,demo:false,strict:false,bassTone:'finger',epianoTone:'ep1',bassBuffers:{},epianoBuffers:{},bassLoading:null,
   originMs:0,audioStart:0,nextScheduled:0,timer:null,raf:null,sessionId:0,
   evaluated:new Map(),nextMiss:0,hits:0,misses:0,judged:0,visualBeat:-1,
   midi:null,midiInput:null,midiCluster:null,midiClusterTimer:null,midiNotes:new Map(),
@@ -21,19 +22,32 @@ const state={
 };
 try{const old=JSON.parse(localStorage.getItem(KEY)||'{}');if(old&&typeof old==='object')state.records=old;}catch{}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state.records));}catch{}};
+const clampVolume=value=>{const number=Number(value);return Number.isFinite(number)?Math.max(0,Math.min(100,Math.round(number))):100;};
+function loadMixSettings(){try{const settings=JSON.parse(localStorage.getItem(MIX_KEY)||'{}');state.bassVolume=clampVolume(settings.bassVolume??100);state.chordVolume=clampVolume(settings.chordVolume??100);}catch{}}
+function saveMixSettings(){try{localStorage.setItem(MIX_KEY,JSON.stringify({bassVolume:state.bassVolume,chordVolume:state.chordVolume}));}catch{}}
+function setMixVolume(instrument,value){
+  const volume=clampVolume(value);state[`${instrument}Volume`]=volume;
+  const input=$(`${instrument}Volume`),output=$(`${instrument}VolumeValue`);
+  if(input){input.value=String(volume);input.setAttribute('aria-valuetext',`${volume}%`);}
+  if(output)output.textContent=`${volume}%`;
+  const bus=state[`${instrument}MixGain`];if(bus){const level=volume/100;if(typeof bus.gain.setTargetAtTime==='function')bus.gain.setTargetAtTime(level,state.ctx.currentTime,.015);else bus.gain.value=level;}
+  saveMixSettings();
+}
+function initializeMixControls(){for(const instrument of ['bass','chord']){setMixVolume(instrument,state[`${instrument}Volume`]);$(`${instrument}Volume`).addEventListener('input',event=>setMixVolume(instrument,event.target.value));}}
+loadMixSettings();
 
 // Web Audio — ağdan ses dosyası indirmez; bağlantısız çalışır.
-function audio(){if(!state.ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)throw new Error('Tarayıcın ses üretimini desteklemiyor.');state.ctx=new C();}return state.ctx;}
-function oscillator(freq,t,length,volume,type='sine'){
-  if(!state.ctx)return;const c=state.ctx,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.0002,volume),t+.014);g.gain.exponentialRampToValueAtTime(.0001,t+length);o.connect(g).connect(c.destination);o.start(t);o.stop(t+length+.018);
+function audio(){if(!state.ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)throw new Error('Tarayıcın ses üretimini desteklemiyor.');state.ctx=new C();state.bassMixGain=state.ctx.createGain();state.chordMixGain=state.ctx.createGain();state.bassMixGain.gain.value=state.bassVolume/100;state.chordMixGain.gain.value=state.chordVolume/100;state.bassMixGain.connect(state.ctx.destination);state.chordMixGain.connect(state.ctx.destination);}return state.ctx;}
+function oscillator(freq,t,length,volume,type='sine',output=null){
+  if(!state.ctx)return;const c=state.ctx,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.0002,volume),t+.014);g.gain.exponentialRampToValueAtTime(.0001,t+length);o.connect(g).connect(output||c.destination);o.start(t);o.stop(t+length+.018);
 }
-function toneFromMidi(note,t,length=.24,volume=.12,type='triangle') {oscillator(440*Math.pow(2,(note-69)/12),t,length,volume,type)}
+function toneFromMidi(note,t,length=.24,volume=.12,type='triangle',output=null) {oscillator(440*Math.pow(2,(note-69)/12),t,length,volume,type,output)}
 const BASS_SAMPLES={finger:[{root:33,file:'finger-A.wav'},{root:35,file:'finger-B.wav'},{root:39,file:'finger-Dsharp.wav'}],pick:[{root:33,file:'pick-A.wav'},{root:35,file:'pick-B.wav'},{root:40,file:'pick-E2.wav'}]};
 const EPIANO_SAMPLES={ep1:[{root:60,file:'ep1-C4.wav'},{root:66,file:'ep1-Fsharp4.wav'},{root:72,file:'ep1-C5.wav'}],ep2:[{root:60,file:'ep2-C4.wav'},{root:66,file:'ep2-Fsharp4.wav'},{root:72,file:'ep2-C5.wav'}]};
 async function loadBassSamples(){if(state.bassLoading)return state.bassLoading;state.bassLoading=(async()=>{const c=audio();await Promise.all([['bass',BASS_SAMPLES,'./assets/bass/'],['epiano',EPIANO_SAMPLES,'./assets/epiano/']].map(async([kind,banks,path])=>{const target=kind==='bass'?state.bassBuffers:state.epianoBuffers;for(const [tone,entries] of Object.entries(banks)){target[tone]={};await Promise.all(entries.map(async entry=>{try{const response=await fetch(path+entry.file);if(!response.ok)throw new Error();target[tone][entry.root]=await c.decodeAudioData(await response.arrayBuffer());}catch{target[tone]={};}}));}}));})();return state.bassLoading;}
 const selectedGmProgram=value=>String(value).startsWith('gm:')?Number(String(value).slice(3)):null;
-function playBass(note,t){const c=state.ctx,program=selectedGmProgram(state.bassTone);if(program!==null){playProgramNote(c,note,program,t,.34,.12);return;}const samples=state.bassBuffers[state.bassTone];if(!samples){toneFromMidi(note,t,.32,.15,'triangle');return;}const roots=Object.keys(samples).map(Number),root=roots.reduce((a,b)=>Math.abs(b-note)<Math.abs(a-note)?b:a);const src=c.createBufferSource(),gain=c.createGain();src.buffer=samples[root];src.playbackRate.setValueAtTime(Math.pow(2,(note-root)/12),t);gain.gain.setValueAtTime(.72,t);gain.gain.setTargetAtTime(.0001,t+.32,.4);src.connect(gain).connect(c.destination);src.start(t);src.stop(t+1.8);}
-function playEPiano(note,t){const c=state.ctx,program=selectedGmProgram(state.epianoTone);if(program!==null){playProgramNote(c,note,program,t,.46,.085);return;}const samples=state.epianoBuffers[state.epianoTone];if(!samples||!Object.keys(samples).length){toneFromMidi(note,t,.32,.08,'triangle');return;}const roots=Object.keys(samples).map(Number),root=roots.reduce((a,b)=>Math.abs(a-note)<Math.abs(b-note)?a:b);const src=c.createBufferSource(),gain=c.createGain();src.buffer=samples[root];src.playbackRate.setValueAtTime(Math.pow(2,(note-root)/12),t);gain.gain.setValueAtTime(.62,t);gain.gain.setTargetAtTime(.0001,t+.48,.45);src.connect(gain).connect(c.destination);src.start(t);src.stop(t+2.08);}
+function playBass(note,t){const c=state.ctx,output=state.bassMixGain||c.destination,program=selectedGmProgram(state.bassTone);if(program!==null){playProgramNote(c,note,program,t,.34,.12,output);return;}const samples=state.bassBuffers[state.bassTone];if(!samples){toneFromMidi(note,t,.32,.15,'triangle',output);return;}const roots=Object.keys(samples).map(Number),root=roots.reduce((a,b)=>Math.abs(b-note)<Math.abs(a-note)?b:a);const src=c.createBufferSource(),gain=c.createGain();src.buffer=samples[root];src.playbackRate.setValueAtTime(Math.pow(2,(note-root)/12),t);gain.gain.setValueAtTime(.72,t);gain.gain.setTargetAtTime(.0001,t+.32,.4);src.connect(gain).connect(output);src.start(t);src.stop(t+1.8);}
+function playEPiano(note,t){const c=state.ctx,output=state.chordMixGain||c.destination,program=selectedGmProgram(state.epianoTone);if(program!==null){playProgramNote(c,note,program,t,.46,.085,output);return;}const samples=state.epianoBuffers[state.epianoTone];if(!samples||!Object.keys(samples).length){toneFromMidi(note,t,.32,.08,'triangle',output);return;}const roots=Object.keys(samples).map(Number),root=roots.reduce((a,b)=>Math.abs(a-note)<Math.abs(b-note)?a:b);const src=c.createBufferSource(),gain=c.createGain();src.buffer=samples[root];src.playbackRate.setValueAtTime(Math.pow(2,(note-root)/12),t);gain.gain.setValueAtTime(.62,t);gain.gain.setTargetAtTime(.0001,t+.48,.45);src.connect(gain).connect(output);src.start(t);src.stop(t+2.08);}
 function playNotes(notes,at=null){try{const c=audio();const t=at??c.currentTime+.002;notes.forEach((n,i)=>{if(notes.length===1)playBass(n,t);else playEPiano(n,t+i*.004)});}catch{}}
 function kick(t){const c=state.ctx,o=c.createOscillator(),g=c.createGain();o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(44,t+.14);g.gain.setValueAtTime(.28,t);g.gain.exponentialRampToValueAtTime(.0001,t+.17);o.connect(g).connect(c.destination);o.start(t);o.stop(t+.19)}
 function noise(t,duration=.06,level=.075,cutoff=2300){const c=state.ctx,size=Math.ceil(c.sampleRate*duration),buffer=c.createBuffer(1,size,c.sampleRate),d=buffer.getChannelData(0);for(let i=0;i<size;i++)d[i]=Math.random()*2-1;const o=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();o.buffer=buffer;f.type='highpass';f.frequency.value=cutoff;g.gain.setValueAtTime(level,t);g.gain.exponentialRampToValueAtTime(.0001,t+duration);o.connect(f).connect(g).connect(c.destination);o.start(t);o.stop(t+duration+.001)}
@@ -239,7 +253,7 @@ function loadMidiAnalysis(file,uploadedName){
 }
 async function handleMidiFile(event){const file=event.target.files?.[0];if(!file)return;state.midiPlayer?.dispose();state.midiPlayer=null;state.importedMidi=null;$('midiPlayer').hidden=true;$('midiImportStatus').classList.remove('good','bad','warn');$('midiImportStatus').textContent='MIDI dosyası analiz ediliyor…';try{const parsed=parseMidiFile(await file.arrayBuffer());loadMidiAnalysis(parsed,file.name);}catch(error){$('midiAnalysis').hidden=true;$('midiImportStatus').classList.add('bad');$('midiImportStatus').textContent=error.message||'MIDI dosyası okunamadı.';}}
 function prepareMidiLesson(){if(!state.importedMidi)return;try{const lesson=buildMidiLesson(state.importedMidi,{bassChannel:$('midiBassChannel').value,chordChannel:$('midiChordChannel').value||null,sourceKey:$('midiSourceKey').value,targetKey:$('midiTargetKey').value,startBar:$('midiStartBar').value,barCount:$('midiBarCount').value,bpm:tempoAt(state.importedMidi,(Number($('midiStartBar').value)-1)*measureTicks(state.importedMidi.ppq,meterAt(state.importedMidi,0)))});state.importedLesson=lesson;state.levelGroup='all';$('levelGroup').value='all';fillLessonOptions(lesson.id);changeLesson(lesson.id);$('maxnote').value='83';setFeedback(`✓ ${lesson.sourceBarCount} ölçü hazırlandı. Bas ve akorlar ${MIDI_NOTE_NAMES[lesson.targetKey]} kararına taşındı; MIDI girişinde bas ile akoru aynı anda çal.`,'good');}catch(error){$('midiImportStatus').classList.add('bad');$('midiImportStatus').textContent=error.message||'Bu MIDI için çalışma oluşturulamadı.';}}
-function initialize(){drawKeyboard();$('levelGroup').value=state.levelGroup;fillLessonOptions();appendGeneralMidiOptions($('bassTone'));appendGeneralMidiOptions($('epianoTone'));for(let ch=1;ch<=16;ch++){const opt=document.createElement('option');opt.value=String(ch);opt.textContent='Kanal '+ch;$('channel').appendChild(opt)}
+function initialize(){drawKeyboard();$('levelGroup').value=state.levelGroup;fillLessonOptions();appendGeneralMidiOptions($('bassTone'));appendGeneralMidiOptions($('epianoTone'));initializeMixControls();for(let ch=1;ch<=16;ch++){const opt=document.createElement('option');opt.value=String(ch);opt.textContent='Kanal '+ch;$('channel').appendChild(opt)}
   $('play').addEventListener('click',start);$('stop').addEventListener('click',()=>stop());$('levelGroup').addEventListener('change',ev=>changeLevelGroup(ev.target.value));$('lesson').addEventListener('change',ev=>changeLesson(ev.target.value));$('bpm').addEventListener('input',ev=>setBpm(Number(ev.target.value)));$('sync').addEventListener('change',selectSync);$('demo').addEventListener('change',ev=>state.demo=ev.target.checked);$('strict').addEventListener('change',ev=>state.strict=ev.target.checked);$('tap').addEventListener('click',tapTempo);$('connect').addEventListener('click',()=>state.midi?refreshMidi():connect());$('device').addEventListener('change',midiInputChanged);$('bassTone').addEventListener('change',ev=>{state.bassTone=ev.target.value;});$('epianoTone').addEventListener('change',ev=>{state.epianoTone=ev.target.value;});
   $('midiFile').addEventListener('change',handleMidiFile);$('midiSourceKey').addEventListener('change',updateMidiMappingHint);$('midiTargetKey').addEventListener('change',updateMidiMappingHint);$('prepareMidiLesson').addEventListener('click',prepareMidiLesson);
   $('midiPlayerPlay').addEventListener('click',async()=>{if(!state.midiPlayer)return;if(state.playing)stop();try{await state.midiPlayer.play();}catch(error){setFeedback(`MIDI sesi açılamadı: ${error.message||error}`,'bad');}});
@@ -255,6 +269,6 @@ function initialize(){drawKeyboard();$('levelGroup').value=state.levelGroup;fill
   window.addEventListener('pagehide',()=>{stop();state.midiPlayer?.dispose();});
   setBpm(state.lesson.defaultBpm);lessonMarkup();selectSync();
   if('serviceWorker' in navigator && /^https?:/.test(location.protocol))navigator.serviceWorker.register('./sw.js').catch(()=>{});
-  window.basakorDebug={version:VERSION,getState:()=>({playing:state.playing,lesson:state.lesson.id,levelGroup:state.levelGroup,mode:state.mode,bpm:state.bpm,hits:state.hits,misses:state.misses,imported:!!state.importedMidi}),simulateMidi:bytes=>handleMidi({data:new Uint8Array(bytes)})};
+  window.basakorDebug={version:VERSION,getState:()=>({playing:state.playing,lesson:state.lesson.id,levelGroup:state.levelGroup,mode:state.mode,bpm:state.bpm,bassVolume:state.bassVolume,chordVolume:state.chordVolume,hits:state.hits,misses:state.misses,imported:!!state.importedMidi}),simulateMidi:bytes=>handleMidi({data:new Uint8Array(bytes)})};
 }
 initialize();
