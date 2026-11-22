@@ -18,7 +18,7 @@ const state={
   evaluated:new Map(),nextMiss:0,hits:0,misses:0,judged:0,visualBeat:-1,
   midi:null,midiInput:null,midiCluster:null,midiClusterTimer:null,midiNotes:new Map(),
   clock:{armed:false,running:false,ticks:0,lastTickMs:0,avgTickMs:0,pulseTimes:[],sourceId:null},
-  tapTimes:[],records:{},mutedPage:false,importedMidi:null,importedLesson:null,importedKey:null,midiPlayer:null,midiPracticeChannels:[]
+  tapTimes:[],records:{},mutedPage:false,importedMidi:null,importedLesson:null,importedKey:null,midiPlayer:null,midiPracticeChannels:[],mp3ApiAvailable:false,mp3JobId:null,mp3Result:null
 };
 try{const old=JSON.parse(localStorage.getItem(KEY)||'{}');if(old&&typeof old==='object')state.records=old;}catch{}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state.records));}catch{}};
@@ -253,9 +253,124 @@ function loadMidiAnalysis(file,uploadedName){
 }
 async function handleMidiFile(event){const file=event.target.files?.[0];if(!file)return;state.midiPlayer?.dispose();state.midiPlayer=null;state.importedMidi=null;$('midiPlayer').hidden=true;$('midiImportStatus').classList.remove('good','bad','warn');$('midiImportStatus').textContent='MIDI dosyası analiz ediliyor…';try{const parsed=parseMidiFile(await file.arrayBuffer());loadMidiAnalysis(parsed,file.name);}catch(error){$('midiAnalysis').hidden=true;$('midiImportStatus').classList.add('bad');$('midiImportStatus').textContent=error.message||'MIDI dosyası okunamadı.';}}
 function prepareMidiLesson(){if(!state.importedMidi)return;try{const lesson=buildMidiLesson(state.importedMidi,{bassChannel:$('midiBassChannel').value,chordChannel:$('midiChordChannel').value||null,sourceKey:$('midiSourceKey').value,targetKey:$('midiTargetKey').value,startBar:$('midiStartBar').value,barCount:$('midiBarCount').value,bpm:tempoAt(state.importedMidi,(Number($('midiStartBar').value)-1)*measureTicks(state.importedMidi.ppq,meterAt(state.importedMidi,0)))});state.importedLesson=lesson;state.levelGroup='all';$('levelGroup').value='all';fillLessonOptions(lesson.id);changeLesson(lesson.id);$('maxnote').value='83';setFeedback(`✓ ${lesson.sourceBarCount} ölçü hazırlandı. Bas ve akorlar ${MIDI_NOTE_NAMES[lesson.targetKey]} kararına taşındı; MIDI girişinde bas ile akoru aynı anda çal.`,'good');}catch(error){$('midiImportStatus').classList.add('bad');$('midiImportStatus').textContent=error.message||'Bu MIDI için çalışma oluşturulamadı.';}}
+function setAudioAnalysisStatus(message,type=''){
+  const el=$('audioAnalysisStatus');if(!el)return;
+  el.classList.remove('good','bad','warn');if(type)el.classList.add(type);el.textContent=message;
+}
+function updateAudioAnalyzeButton(){
+  const file=$('audioFile').files?.[0],tooLarge=file&&file.size>100*1024*1024;
+  $('analyzeAudio').disabled=!state.mp3ApiAvailable||!file||!!tooLarge;
+}
+async function initializeMp3Analysis(){
+  $('audioFile').addEventListener('change',()=>{
+    state.mp3Result=null;$('audioResults').hidden=true;
+    const file=$('audioFile').files?.[0];
+    if(!file){setAudioAnalysisStatus('Henüz MP3 seçilmedi.');updateAudioAnalyzeButton();return;}
+    if(file.size>100*1024*1024){setAudioAnalysisStatus('Dosya 100 MB sınırını aşıyor.','bad');updateAudioAnalyzeButton();return;}
+    setAudioAnalysisStatus(`${file.name} seçildi. Analiz dosyayı bu Codespace'e gönderir.`);updateAudioAnalyzeButton();
+  });
+  $('analyzeAudio').addEventListener('click',startMp3Analysis);
+  $('audioLoadPractice').addEventListener('click',loadMp3PracticeIntoApp);
+  if(!/^https?:$/.test(location.protocol)){
+    $('audioServiceLabel').textContent='Yalnızca Codespace';
+    setAudioAnalysisStatus('MP3 analizi Codespace sunucusu gerektirir. Bu sayfayı Codespace portundan aç.','warn');
+    return;
+  }
+  try{
+    const response=await fetch(new URL('/api/health',location.href),{cache:'no-store'});
+    if(!response.ok)throw new Error('Analiz servisi yanıt vermedi.');
+    const health=await response.json();
+    if(health.service!=='basakor-akademi-audio')throw new Error('Bu adres MP3 analiz servisi değil.');
+    state.mp3ApiAvailable=true;$('audioServiceLabel').textContent='Codespace servisi hazır';
+    setAudioAnalysisStatus('MP3 ve sonuçlar özel Codespace alanında işlenir; GitHub deposuna veya Pages sitesine eklenmez.','good');
+    updateAudioAnalyzeButton();
+  }catch{
+    state.mp3ApiAvailable=false;$('audioServiceLabel').textContent='Codespace analiz sunucusu gerekir';
+    setAudioAnalysisStatus('MP3 analizi için Codespace terminalinde python scripts/web_server.py çalıştırıp uygulamayı 8765 portundan aç. GitHub Pages sürümü tek başına MP3 analizi yapmaz.','warn');
+    updateAudioAnalyzeButton();
+  }
+}
+function renderAudioJob(job){
+  $('audioProgressArea').hidden=false;$('audioProgress').value=Number(job.progress)||0;
+  $('audioProgressText').textContent=`${Number(job.progress)||0}%`;
+  $('audioStage').textContent=job.stage||'Analiz sürüyor';
+  $('audioProgressHint').textContent=job.message||'Bas ayırma adımı birkaç dakika sürebilir. Bu sayfayı açık bırak.';
+}
+async function pollMp3Job(jobId){
+  while(state.mp3JobId===jobId){
+    const response=await fetch(new URL(`/api/jobs/${jobId}`,location.href),{cache:'no-store'});
+    const job=await response.json();
+    if(!response.ok)throw new Error(job.error||'Analiz durumu alınamadı.');
+    renderAudioJob(job);
+    if(job.status==='completed'){
+      state.mp3Result=job.result;showMp3Results(job.result);
+      setAudioAnalysisStatus('Analiz tamamlandı. Birleşik bas + akor MIDI dosyasını çalışma bölümüne aktarabilirsin.','good');
+      return;
+    }
+    if(job.status==='failed'){
+      $('audioProgressHint').textContent=job.details||job.error||'Analiz başarısız oldu.';
+      throw new Error(job.error||'Ses analizi tamamlanamadı.');
+    }
+    await new Promise(resolve=>setTimeout(resolve,2000));
+  }
+}
+function showMp3Results(result){
+  $('audioResults').hidden=false;
+  $('audioSummary').textContent=`${result.file_name} · ${result.tempo_bpm} BPM tahmini · ${result.time_signature} tahmini · ${result.chord_count} akor bölümü`;
+  $('audioLoadPractice').disabled=false;
+  $('downloadBassWav').href=result.bass_wav_url;$('downloadBassMidi').href=result.bass_midi_url;
+  $('downloadChords').href=result.chords_url;$('downloadReport').href=result.report_url;
+  const list=$('audioChordPreview');list.replaceChildren();
+  const segments=result.chord_segments||[];
+  for(const segment of segments.slice(0,24)){
+    const item=document.createElement('li'),seconds=Math.max(0,Number(segment.start_seconds)||0);
+    const time=`${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,'0')}`;
+    item.textContent=`${time} · ${segment.chord}`;list.appendChild(item);
+  }
+  if(!segments.length){const item=document.createElement('li');item.textContent='Akor tahmini bulunamadı.';list.appendChild(item);}
+}
+async function startMp3Analysis(){
+  const file=$('audioFile').files?.[0];if(!file||!state.mp3ApiAvailable)return;
+  if(file.size>100*1024*1024){setAudioAnalysisStatus('Dosya 100 MB sınırını aşıyor.','bad');return;}
+  state.mp3JobId=null;state.mp3Result=null;$('audioResults').hidden=true;
+  $('audioProgressArea').hidden=false;$('audioProgress').value=1;$('audioProgressText').textContent='1%';
+  $('audioStage').textContent='Dosya Codespace\'e yükleniyor';$('audioProgressHint').textContent='Yükleme tamamlanınca analiz otomatik başlar.';
+  $('analyzeAudio').disabled=true;setAudioAnalysisStatus('MP3 Codespace analiz sunucusuna gönderiliyor…');
+  try{
+    const url=new URL('/api/analyze',location.href);url.searchParams.set('filename',file.name);
+    const response=await fetch(url,{method:'POST',headers:{'Content-Type':file.type||'application/octet-stream'},body:file,cache:'no-store'});
+    const data=await response.json();if(!response.ok)throw new Error(data.error||'MP3 yüklenemedi.');
+    state.mp3JobId=data.job_id;await pollMp3Job(data.job_id);
+  }catch(error){
+    setAudioAnalysisStatus(error.message||'MP3 analizi başarısız oldu.','bad');
+  }finally{
+    $('analyzeAudio').disabled=false;updateAudioAnalyzeButton();
+  }
+}
+async function loadMp3PracticeIntoApp(){
+  const result=state.mp3Result;if(!result?.practice_midi_url)return;
+  $('audioLoadPractice').disabled=true;
+  try{
+    const response=await fetch(new URL(result.practice_midi_url,location.href),{cache:'no-store'});
+    if(!response.ok)throw new Error('Birleşik çalışma MIDI dosyası indirilemedi.');
+    const blob=await response.blob(),baseName=(result.file_name||'MP3').replace(/\.[^.]+$/,'');
+    const file=new File([blob],`${baseName}_bas_akor.mid`,{type:'audio/midi'});
+    await handleMidiFile({target:{files:[file]}});
+    if(!state.importedMidi)throw new Error($('midiImportStatus').textContent||'MIDI çalışma dosyası okunamadı.');
+    $('midiBarCount').value='2';prepareMidiLesson();
+    if(!state.importedLesson)throw new Error('Çalışma bölümü hazırlanamadı.');
+    $('heading-import').scrollIntoView({behavior:'smooth',block:'start'});
+    setAudioAnalysisStatus('Bas MIDI ve tahmini piano akorları çalışma bölümüne aktarıldı; 2 ölçülük alıştırma hazır.','good');
+  }catch(error){
+    setAudioAnalysisStatus(error.message||'Çalışma MIDI dosyası aktarılamadı.','bad');
+  }finally{
+    $('audioLoadPractice').disabled=false;
+  }
+}
+
 function initialize(){drawKeyboard();$('levelGroup').value=state.levelGroup;fillLessonOptions();appendGeneralMidiOptions($('bassTone'));appendGeneralMidiOptions($('epianoTone'));initializeMixControls();for(let ch=1;ch<=16;ch++){const opt=document.createElement('option');opt.value=String(ch);opt.textContent='Kanal '+ch;$('channel').appendChild(opt)}
   $('play').addEventListener('click',start);$('stop').addEventListener('click',()=>stop());$('levelGroup').addEventListener('change',ev=>changeLevelGroup(ev.target.value));$('lesson').addEventListener('change',ev=>changeLesson(ev.target.value));$('bpm').addEventListener('input',ev=>setBpm(Number(ev.target.value)));$('sync').addEventListener('change',selectSync);$('demo').addEventListener('change',ev=>state.demo=ev.target.checked);$('strict').addEventListener('change',ev=>state.strict=ev.target.checked);$('tap').addEventListener('click',tapTempo);$('connect').addEventListener('click',()=>state.midi?refreshMidi():connect());$('device').addEventListener('change',midiInputChanged);$('bassTone').addEventListener('change',ev=>{state.bassTone=ev.target.value;});$('epianoTone').addEventListener('change',ev=>{state.epianoTone=ev.target.value;});
-  $('midiFile').addEventListener('change',handleMidiFile);$('midiSourceKey').addEventListener('change',updateMidiMappingHint);$('midiTargetKey').addEventListener('change',updateMidiMappingHint);$('prepareMidiLesson').addEventListener('click',prepareMidiLesson);
+  $('midiFile').addEventListener('change',handleMidiFile);initializeMp3Analysis();$('midiSourceKey').addEventListener('change',updateMidiMappingHint);$('midiTargetKey').addEventListener('change',updateMidiMappingHint);$('prepareMidiLesson').addEventListener('click',prepareMidiLesson);
   $('midiPlayerPlay').addEventListener('click',async()=>{if(!state.midiPlayer)return;if(state.playing)stop();try{await state.midiPlayer.play();}catch(error){setFeedback(`MIDI sesi açılamadı: ${error.message||error}`,'bad');}});
   $('midiPlayerPause').addEventListener('click',()=>state.midiPlayer?.pause());$('midiPlayerStop').addEventListener('click',()=>state.midiPlayer?.stop());
   $('midiSeek').addEventListener('change',event=>{if(state.midiPlayer)state.midiPlayer.seek(state.midiPlayer.duration*Number(event.target.value)/1000);});
