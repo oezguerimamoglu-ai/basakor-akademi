@@ -104,15 +104,15 @@ function stopVoice(context,voice){
   try{const now=context.currentTime;voice.gain.gain.cancelScheduledValues(now);voice.gain.gain.setTargetAtTime(.0001,now,.012);for(const source of voice.sources)source.stop(now+.045);}catch{}
 }
 
-/** Lightweight in-browser MIDI preview with seeking, tempo scaling, and channel solo/mute. */
+/** Lightweight in-browser MIDI preview with seeking, tempo scaling, channel solo/mute, and instrument overrides. */
 export class MidiFilePlayer{
   constructor(file,{contextProvider,onUpdate=()=>{}}={}){
     this.file=file;this.events=midiPlaybackEvents(file);this.duration=midiTickToSeconds(file,file.endTick);
     this.channels=file.channels.filter(c=>c.noteCount>0).map(c=>({...c}));
-    this.enabledChannels=new Set(this.channels.map(c=>c.channel));this.contextProvider=contextProvider||(()=>new (window.AudioContext||window.webkitAudioContext)());
+    this.enabledChannels=new Set(this.channels.map(c=>c.channel));this.programOverrides=new Map();this.contextProvider=contextProvider||(()=>new (window.AudioContext||window.webkitAudioContext)());
     this.onUpdate=onUpdate;this.context=null;this.master=null;this.position=0;this.rate=1;this.playing=false;this.anchor=0;this.cursor=0;this.timer=null;this.lastUiUpdate=0;
   }
-  snapshot(){return {position:this.position,duration:this.duration,rate:this.rate,playing:this.playing,enabledChannels:new Set(this.enabledChannels),channels:this.channels};}
+  snapshot(){return {position:this.position,duration:this.duration,rate:this.rate,playing:this.playing,enabledChannels:new Set(this.enabledChannels),programOverrides:new Map(this.programOverrides),channels:this.channels};}
   emit(){this.onUpdate(this.snapshot());}
   findCursor(position){let low=0,high=this.events.length;while(low<high){const mid=(low+high)>>1;if(this.events[mid].startSeconds<position-1e-6)low=mid+1;else high=mid;}return low;}
   currentPosition(){return this.playing&&this.context?clamp((this.context.currentTime-this.anchor)*this.rate,0,this.duration):this.position;}
@@ -127,6 +127,8 @@ export class MidiFilePlayer{
   seek(seconds){const wasPlaying=this.playing;if(wasPlaying){this.position=this.currentPosition();this.stopVoices();}this.position=clamp(Number(seconds)||0,0,this.duration);this.cursor=this.findCursor(this.position);if(wasPlaying&&this.context){this.anchor=this.context.currentTime-this.position/this.rate;this.pump();}this.emit();}
   setRate(rate){const next=clamp(Number(rate)||1,.5,1.5);if(next===this.rate)return;const wasPlaying=this.playing;if(wasPlaying){this.position=this.currentPosition();this.stopVoices();}this.rate=next;this.cursor=this.findCursor(this.position);if(wasPlaying&&this.context){this.anchor=this.context.currentTime-this.position/this.rate;this.pump();}this.emit();}
   setChannelEnabled(channel,enabled){const value=Number(channel);if(enabled)this.enabledChannels.add(value);else{this.enabledChannels.delete(value);if(this.context)for(const voice of [...activeVoices])if(voice.channel===value)stopVoice(this.context,voice);}this.emit();}
+  programFor(channel,sourceProgram=null){const value=Number(channel);if(this.programOverrides.has(value))return this.programOverrides.get(value);return sourceProgram??this.channels.find(c=>c.channel===value)?.program??0;}
+  setChannelProgram(channel,program){const value=Number(channel);if(program===null||program==='')this.programOverrides.delete(value);else this.programOverrides.set(value,clamp(Math.round(Number(program)||0),0,127));if(this.context)for(const voice of [...activeVoices])if(voice.channel===value)stopVoice(this.context,voice);this.emit();}
   soloChannel(channel){this.enabledChannels=new Set([Number(channel)]);if(this.context)for(const voice of [...activeVoices])if(voice.channel!==Number(channel))stopVoice(this.context,voice);this.emit();}
   selectChannels(channels){this.enabledChannels=new Set(channels.map(Number));if(this.context)for(const voice of [...activeVoices])if(!this.enabledChannels.has(voice.channel))stopVoice(this.context,voice);this.emit();}
   stopVoices(){if(!this.context)return;for(const voice of [...activeVoices])stopVoice(this.context,voice);}
@@ -138,7 +140,7 @@ export class MidiFilePlayer{
       if(!this.enabledChannels.has(event.channel))continue;
       const end=this.anchor+event.endSeconds/this.rate,start=Math.max(when,context.currentTime+.001),duration=end-start;
       if(duration<=.015)continue;
-      if(event.channel===10)scheduleDrum(context,this.master,event,start,duration);else schedulePitched(context,this.master,event,start,duration);
+      if(event.channel===10&&!this.programOverrides.has(10))scheduleDrum(context,this.master,event,start,duration);else schedulePitched(context,this.master,{...event,program:this.programFor(event.channel,event.program)},start,duration);
     }
     if(this.position>=this.duration){this.playing=false;clearInterval(this.timer);this.timer=null;this.position=this.duration;this.stopVoices();this.emit();return;}
     const now=performance.now();if(now-this.lastUiUpdate>65){this.lastUiUpdate=now;this.emit();}

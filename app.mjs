@@ -187,6 +187,7 @@ function updateMidiPlayerUI(snapshot){
   $('midiPlayerStop').disabled=!snapshot.playing&&snapshot.position<.001;$('midiPlayerRate').value=String(snapshot.rate);
   $('midiPlayerChannelCount').textContent=`${snapshot.enabledChannels.size}/${snapshot.channels.length} kanal açık`;
   $('midiPlayerChannels').querySelectorAll('[data-player-channel]').forEach(input=>{input.checked=snapshot.enabledChannels.has(Number(input.dataset.playerChannel));});
+  $('midiPlayerChannels').querySelectorAll('[data-player-program]').forEach(select=>{const channel=Number(select.dataset.playerProgram);select.value=snapshot.programOverrides.has(channel)?String(snapshot.programOverrides.get(channel)):'';});
 }
 function setupMidiPlayer(file,suggestions){
   state.midiPlayer?.dispose();state.midiPracticeChannels=[suggestions.bass,suggestions.chord].filter(Boolean);
@@ -198,8 +199,12 @@ function setupMidiPlayer(file,suggestions){
     const input=document.createElement('input');input.type='checkbox';input.checked=true;input.dataset.playerChannel=String(channel.channel);input.setAttribute('aria-label',`Kanal ${channel.channel} ${channel.instrument}`);
     input.addEventListener('change',()=>player.setChannelEnabled(channel.channel,input.checked));
     const name=document.createElement('span');name.textContent=`Kanal ${channel.channel} · ${channel.instrument}`;label.append(input,name);
+    const instrument=document.createElement('select');instrument.className='midi-player-instrument';instrument.dataset.playerProgram=String(channel.channel);instrument.setAttribute('aria-label',`Kanal ${channel.channel} enstrümanı`);
+    const sourceOption=document.createElement('option');sourceOption.value='';sourceOption.textContent='MIDI kaynağı';instrument.appendChild(sourceOption);
+    GM_INSTRUMENTS.forEach((title,program)=>{const option=document.createElement('option');option.value=String(program);option.textContent=title;instrument.appendChild(option);});
+    instrument.addEventListener('change',()=>player.setChannelProgram(channel.channel,instrument.value));
     const solo=document.createElement('button');solo.type='button';solo.className='midi-solo';solo.textContent='Solo';solo.setAttribute('aria-label',`Yalnızca kanal ${channel.channel} çalsın`);solo.addEventListener('click',()=>player.soloChannel(channel.channel));
-    row.append(label,solo);list.appendChild(row);
+    row.append(label,instrument,solo);list.appendChild(row);
   }
   $('midiPlayer').hidden=false;updateMidiPlayerUI(player.snapshot());
 }
