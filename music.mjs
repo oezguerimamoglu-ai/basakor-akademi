@@ -1,5 +1,5 @@
 // BasAkor Akademi — saf müzik/puanlama işlevleri; DOM veya cihaz bağımlılığı yok.
-export const VERSION = '0.3.4';
+export const VERSION = '0.3.5';
 
 const step=(kind,label,notes,options={})=>({kind,label,notes,...options});
 export const noteName = n => {
