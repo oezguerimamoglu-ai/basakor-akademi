@@ -14,7 +14,7 @@ import threading
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, unquote, urlsplit
+from urllib.parse import parse_qs, quote, unquote, urlsplit
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -196,8 +196,12 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Cache-Control", "no-store")
         if download_name:
-            safe_name = download_name.replace('"', "").replace("\\", "_").replace("/", "_")
-            self.send_header("Content-Disposition", f'attachment; filename="{safe_name}"')
+            ascii_name = download_name.encode("ascii", "replace").decode("ascii").replace('"', "")
+            encoded_name = quote(download_name.replace("/", "_"), safe="")
+            self.send_header(
+                "Content-Disposition",
+                "attachment; filename=\"" + ascii_name + "\"; filename*=UTF-8''" + encoded_name,
+            )
         self.end_headers()
         with path.open("rb") as source:
             while chunk := source.read(1024 * 1024):
