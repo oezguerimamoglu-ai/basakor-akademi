@@ -61,7 +61,7 @@ function instrumentShape(program){
 }
 
 /** Play one short General MIDI-style note through an existing AudioContext. */
-export function playProgramNote(context,note,program,when=context.currentTime+.001,duration=.35,volume=.1){
+export function playProgramNote(context,note,program,when=context.currentTime+.001,duration=.35,volume=.1,output=context.destination){
   const shape=instrumentShape(program),start=Math.max(when,context.currentTime+.001),end=start+Math.max(.025,duration);
   const attack=Math.min(shape.attack,Math.max(.003,(end-start)*.35)),oscillator=context.createOscillator(),filter=context.createBiquadFilter(),gain=context.createGain();
   oscillator.type=shape.wave;oscillator.frequency.setValueAtTime(frequencyForMidi(note),start);
@@ -70,7 +70,7 @@ export function playProgramNote(context,note,program,when=context.currentTime+.0
   const decayAt=Math.min(end,start+attack+.075);if(decayAt<end)gain.gain.exponentialRampToValueAtTime(Math.max(.0002,amplitude*shape.sustain),decayAt);
   const releaseStart=Math.max(start,end-Math.min(.035,(end-start)*.2));gain.gain.setValueAtTime(Math.max(.0002,amplitude*shape.sustain),releaseStart);
   const releaseEnd=end+shape.release;gain.gain.exponentialRampToValueAtTime(.0001,releaseEnd);
-  oscillator.connect(filter).connect(gain).connect(context.destination);oscillator.start(start);oscillator.stop(releaseEnd+.01);
+  oscillator.connect(filter).connect(gain).connect(output);oscillator.start(start);oscillator.stop(releaseEnd+.01);
 }
 
 function addVoice(context,master,channel,sourceNodes,gainNode){
