@@ -317,7 +317,7 @@ function loadMidiAnalysis(file,uploadedName){
   addSelectOptions($('midiStartBar'),Array.from({length:Math.max(1,bars)},(_,i)=>({value:i+1,label:`Ölçü ${i+1}`})),defaultBar);
   state.midiSections=styleSections(file);
   addSelectOptions($('midiSection'),state.midiSections.length?state.midiSections.map((section,i)=>({value:i,label:section.label})):[{value:'',label:'İşaret bulunamadı · ölçü seç'}]);
-  $('midiStartBarField').hidden=!!state.midiSections.length;$('midiBarCountField').hidden=!!state.midiSections.length;
+  const startBarParent=$('midiStartBar')?.parentElement?.parentElement;const barCountParent=$('midiBarCount')?.parentElement?.parentElement;if(startBarParent)startBarParent.hidden=!!state.midiSections.length;if(barCountParent)barCountParent.hidden=!!state.midiSections.length;
   const duration=sourceDurationSeconds(file),meter=meterAt(file,0),bpm=tempoAt(file,0);
   file.title=file.title&&file.title!=='Yüklenen MIDI'?file.title:uploadedName.replace(/\.midi?$/i,'');
   const summary=document.createElement('div');summary.className='summary-card';
@@ -361,5 +361,6 @@ function initialize(){drawKeyboard();$('levelGroup').value=state.levelGroup;fill
   if(state.lesson){setBpm(state.lesson.defaultBpm);lessonMarkup();}selectSync();
   if('serviceWorker' in navigator && /^https?:/.test(location.protocol))navigator.serviceWorker.register('./sw.js').catch(()=>{});
   window.basakorDebug={version:VERSION,getState:()=>({playing:state.playing,lesson:state.lesson.id,levelGroup:state.levelGroup,mode:state.mode,bpm:state.bpm,bassVolume:state.bassVolume,chordVolume:state.chordVolume,hits:state.hits,misses:state.misses,imported:!!state.importedMidi}),simulateMidi:bytes=>handleMidi({data:new Uint8Array(bytes)})};
+  connect();
 }
 initialize();
