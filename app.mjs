@@ -332,6 +332,7 @@ function loadMidiAnalysis(file,uploadedName){
 }
 async function handleMidiFile(event){const file=event.target.files?.[0];if(!file)return;if(state.playing)stop();state.midiPlayer?.dispose();state.midiPlayer=null;state.importedMidi=null;$('midiPlayer').hidden=true;$('midiImportStatus').classList.remove('good','bad','warn');$('midiImportStatus').textContent='MIDI dosyası analiz ediliyor…';try{const parsed=parseMidiFile(await file.arrayBuffer());loadMidiAnalysis(parsed,file.name);}catch(error){$('midiAnalysis').hidden=true;$('midiImportStatus').classList.add('bad');$('midiImportStatus').textContent=error.message||'MIDI dosyası okunamadı.';}}
 function prepareMidiLesson(){if(!state.importedMidi)return;if(state.playing){setFeedback('Yeni bölüm hazırlamadan önce çalışmayı durdur.','bad');return;}try{
+  if(!state.midiPlayer)throw new Error('MIDI oynatıcısı yüklenemedi. Lütfen MIDI dosyasını tekrar yükle.');
   const file=state.importedMidi,barTicks=measureTicks(file.ppq,meterAt(file,0)),startTick=(Number($('midiStartBar').value)-1)*barTicks;
   const section=state.midiSections.length?state.midiSections[Number($('midiSection').value)]:{label:`Ölçü ${$('midiStartBar').value}`,startTick,endTick:startTick+Number($('midiBarCount').value)*barTicks};
   if(!section||section.endTick>file.endTick+barTicks*.05)throw new Error('Seçilen bölüm MIDI dosyasının sonunu aşıyor.');
