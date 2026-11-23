@@ -7,13 +7,10 @@ const KEY='basakor-akademi-progress-v2';
 const MIX_KEY='basakor-akademi-mix-v1';
 const runLength=8;
 const LESSON_GROUPS=[
-  {id:'beginner',label:'Başlangıç',levels:[1,2,3,4]},
-  {id:'meters',label:'Orta · Ritim kalıpları',levels:[5,6,7,8,9,10,11]},
-  {id:'chords',label:'İleri · Akor geçişleri',levels:[12,13,14]},
-  {id:'all',label:'Tüm seviyeler',levels:null}
+  {id:'all',label:'MIDI Çalışmaları',levels:null}
 ];
 const state={
-  lesson:LESSONS[0],levelGroup:'all',bpm:65,mode:'app',ctx:null,bassMixGain:null,chordMixGain:null,bassVolume:100,chordVolume:100,playing:false,waitingClock:false,demo:false,strict:false,bassTone:'finger',epianoTone:'ep1',bassBuffers:{},epianoBuffers:{},bassLoading:null,
+  lesson:null,levelGroup:'all',bpm:65,mode:'app',ctx:null,bassMixGain:null,chordMixGain:null,bassVolume:100,chordVolume:100,playing:false,waitingClock:false,demo:false,strict:false,bassTone:'finger',epianoTone:'ep1',bassBuffers:{},epianoBuffers:{},bassLoading:null,
   originMs:0,audioStart:0,nextScheduled:0,timer:null,raf:null,sessionId:0,
   evaluated:new Map(),nextMiss:0,hits:0,misses:0,judged:0,visualBeat:-1,
   midi:null,midiInput:null,midiCluster:null,midiClusterTimer:null,midiNotes:new Map(),
@@ -62,20 +59,20 @@ function setStatus(message,playing=false){$('statusPill').textContent=message;$(
 function showMeasure(num){const l=state.lesson,bar=l.songCycle?.length?l.sourceStartMeasure+(num%l.songCycle.length):num+1;$('measure').textContent=l.songCycle?.length?`MIDI ölçü ${bar}`:`Ölçü ${bar}`;$('measureProgress').textContent=l.performanceEvents?`Döngü ${Math.floor(num/l.sourceBarCount)+1} · ${num%l.sourceBarCount+1} / ${l.sourceBarCount}`:`${Math.min(num+1,runLength)} / ${runLength}`;}
 function describeExpected(expected){if(!expected)return;$('actionType').textContent=handName(expected.kind);$('actionType').className='actiontype '+expected.kind;$('actionNote').textContent=expected.label;$('actionDetail').textContent=expected.notes;const activeNotes=expected.midi||[];document.querySelectorAll('.key').forEach(key=>key.classList.toggle('expect',activeNotes.includes(Number(key.dataset.note))));}
 function lessonsForGroup(groupId=state.levelGroup){const group=LESSON_GROUPS.find(g=>g.id===groupId)||LESSON_GROUPS[0],list=group.levels?LESSONS.filter(l=>group.levels.includes(l.level)):[...LESSONS];if(!group.levels&&state.importedLesson)list.push(state.importedLesson);return list;}
-function updateLevelTag(){const group=LESSON_GROUPS.find(g=>g.id===state.levelGroup)||LESSON_GROUPS[0],list=lessonsForGroup(),index=list.findIndex(l=>l.id===state.lesson.id);$('levelTag').textContent=`${group.label} · ${Math.max(1,index+1)}/${list.length} kalıp`;}
+function updateLevelTag(){if(!state.lesson)return;const group=LESSON_GROUPS.find(g=>g.id===state.levelGroup)||LESSON_GROUPS[0],list=lessonsForGroup(),index=list.findIndex(l=>l.id===state.lesson.id);$('levelTag').textContent=`${group.label} · ${Math.max(1,index+1)}/${list.length} kalıp`;}
 function patternName(lesson){const names={'em-44':'4/4 · Temel bas–akor'};return names[lesson.id]||lesson.title;}
-function fillLessonOptions(preferredId=state.lesson.id){const list=lessonsForGroup(),select=$('lesson');select.replaceChildren();for(const l of list){const opt=document.createElement('option');opt.value=l.id;opt.textContent=patternName(l);select.appendChild(opt);}const selected=list.some(l=>l.id===preferredId)?preferredId:list[0].id;select.value=selected;return selected;}
-function lessonMarkup(){const l=state.lesson;$('meterTag').textContent=`${l.meter}${l.groupingText?` · ${l.groupingText}`:` · ${l.grouping.join('+')}`}`;updateLevelTag();$('lessonDescription').textContent=l.description;$('grouping').textContent=l.groupingText||l.grouping.join(' + ');
+function fillLessonOptions(preferredId=state.lesson?.id){const list=lessonsForGroup(),select=$('lesson');select.replaceChildren();for(const l of list){const opt=document.createElement('option');opt.value=l.id;opt.textContent=patternName(l);select.appendChild(opt);}const selected=list.some(l=>l.id===preferredId)?preferredId:list[0]?.id;if(selected)select.value=selected;return selected;}
+function lessonMarkup(){const l=state.lesson;if(!l)return;$('meterTag').textContent=`${l.meter}${l.groupingText?` · ${l.groupingText}`:` · ${l.grouping.join('+')}`}`;updateLevelTag();$('lessonDescription').textContent=l.description;$('grouping').textContent=l.groupingText||l.grouping.join(' + ');
   const hints=l.steps.map((s,i)=>`<li><span class="highlight">${i+1}. adım:</span> ${s.kind==='rest'?'Es (çalma)':s.kind==='bass'?`Sol el bas ${s.label} · ${s.notes}`:s.kind==='combo'?`Sol el bas + sağ el akor ${s.label} · ${s.notes}`:`Sağ el akor ${s.label} · ${s.notes}`}</li>`);
   $('instructions').innerHTML=hints.join('');
   drawBeats(0);renderPads();showMeasure(0);describeExpected(l.steps[0]);updateScore();
 }
-function drawBeats(measure){const l=state.lesson,steps=getSteps(l,measure);const beatArea=$('beats');beatArea.style.setProperty('--cols',steps.length);beatArea.className='beatgrid'+(steps.length>4?' long':'')+(steps.length>9?' extra-long':'')+(l.gridStepTicks?' song-grid':'');let groupStart=0;const starts=new Set(l.grouping.map(group=>{const i=groupStart;groupStart+=group;return i;}));
+function drawBeats(measure){const l=state.lesson;if(!l)return;const steps=getSteps(l,measure);const beatArea=$('beats');beatArea.style.setProperty('--cols',steps.length);beatArea.className='beatgrid'+(steps.length>4?' long':'')+(steps.length>9?' extra-long':'')+(l.gridStepTicks?' song-grid':'');let groupStart=0;const starts=new Set(l.grouping.map(group=>{const i=groupStart;groupStart+=group;return i;}));
   beatArea.innerHTML=steps.map((s,i)=>`<div class="beat ${s.kind} ${starts.has(i)?'group-start':''}" id="beat-${i}" data-step="${i}"><div class="ord">${i+1}</div><div class="type">${s.kind==='bass'?'SOL BAS':s.kind==='chord'?'SAĞ AKOR':s.kind==='combo'?'BAS + AKOR':'ES'}</div><div class="note">${s.label}</div></div>`).join('');
 }
-function relevantPads(){const actions=new Map(),events=state.lesson.performanceEvents|| (state.lesson.songCycle?state.lesson.songCycle.flat():[...state.lesson.steps,...(state.lesson.alternate||[])]);for(const e of events)if(e.kind!=='rest')actions.set(e.kind+':'+e.midi.join(','),e);return [...actions.values()];}
+function relevantPads(){if(!state.lesson)return [];const actions=new Map(),events=state.lesson.performanceEvents|| (state.lesson.songCycle?state.lesson.songCycle.flat():[...state.lesson.steps,...(state.lesson.alternate||[])]);for(const e of events)if(e.kind!=='rest')actions.set(e.kind+':'+e.midi.join(','),e);return [...actions.values()];}
 function playExpected(event,at){const c=audio(),t=at??c.currentTime+.002;if(event.kind==='bass')playBass(event.bassMidi?.[0]??event.midi[0],t);else if(event.kind==='combo'){for(const n of event.bassMidi||[])playBass(n,t);for(const [i,n] of (event.chordMidi||[]).entries())playEPiano(n,t+i*.004);}else if(event.kind==='chord')for(const [i,n] of event.midi.entries())playEPiano(n,t+i*.004);}
-function renderPads(){const items=relevantPads();$('pads').innerHTML=items.map((s,i)=>`<button class="pad ${s.kind}" data-index="${i}" aria-label="${s.kind==='bass'?'Sol el bas':s.kind==='combo'?'Bas ve akor':'Sağ el akor'} ${s.label}">${s.label}<small>${s.kind==='bass'?'SOL EL · BAS':s.kind==='combo'?'SOL EL + SAĞ EL':'SAĞ EL · AKOR'} · ${s.notes}</small></button>`).join('');
+function renderPads(){const items=relevantPads();if(!items.length)return;$('pads').innerHTML=items.map((s,i)=>`<button class="pad ${s.kind}" data-index="${i}" aria-label="${s.kind==='bass'?'Sol el bas':s.kind==='combo'?'Bas ve akor':'Sağ el akor'} ${s.label}">${s.label}<small>${s.kind==='bass'?'SOL EL · BAS':s.kind==='combo'?'SOL EL + SAĞ EL':'SAĞ EL · AKOR'} · ${s.notes}</small></button>`).join('');
   $('pads').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{const e=items[Number(b.dataset.index)];playExpected(e);evaluate(e.midi,performance.now(),'ekran');flashKeys(e.midi)}));
 }
 function drawKeyboard(){const board=$('keyboard');const low=33,high=83;const whites=[];for(let n=low;n<=high;n++)if(![1,3,6,8,10].includes(n%12))whites.push(n);
@@ -166,7 +163,7 @@ function animate(){if(!state.playing)return;const pos=beatPosition(),l=state.les
         showMeasure(measure);describeExpected(getSteps(l,measure)[step]);}
     }}state.raf=requestAnimationFrame(animate);
 }
-async function start(){if(state.playing)return;if(state.midiPlayer?.playing)state.midiPlayer.pause();try{await audio().resume();}catch(e){setFeedback('Ses açılamadı: '+e.message,'bad');return;}await loadBassSamples();
+async function start(){if(state.playing||!state.lesson)return;if(state.midiPlayer?.playing)state.midiPlayer.pause();try{await audio().resume();}catch(e){setFeedback('Ses açılamadı: '+e.message,'bad');return;}await loadBassSamples();
   state.mode=$('sync').value;state.demo=$('demo').checked;state.strict=$('strict').checked;resetSession();state.playing=true;
   $('play').disabled=true;$('stop').disabled=false;$('lesson').disabled=true;$('sync').disabled=true;$('bpm').disabled=true;$('tap').disabled=true;
   if(state.mode==='app'){
@@ -186,16 +183,16 @@ function stop(completed=false){if(!state.playing)return;const completeRun=comple
   if(state.sectionPlayer){const player=state.sectionPlayer;state.sectionPlayer=null;try{player.stop();}catch(error){$('midiOutputStatus').textContent=`MIDI eşliği durdurulamadı: ${error.message||error}`;}}
   for(const cluster of state.practiceClusters.values())clearTimeout(cluster.timer);state.practiceClusters.clear();
   $('midiOutput').disabled=false;if(state.midiPlayer)updateMidiPlayerUI(state.midiPlayer.snapshot());
-  $('play').disabled=false;$('stop').disabled=true;$('lesson').disabled=false;$('sync').disabled=!!state.lesson.performanceEvents;$('bpm').disabled=false;$('tap').disabled=false;setStatus('● Hazır');
+  $('play').disabled=false;$('stop').disabled=true;$('lesson').disabled=false;$('sync').disabled=state.lesson?.performanceEvents?false:true;$('bpm').disabled=false;$('tap').disabled=false;setStatus('● Hazır');
   document.querySelectorAll('.beat').forEach(el=>el.classList.remove('active'));
   if(!completeRun){setFeedback('Çalışma durduruldu. Başlat ile yeniden dene.');$('progressFill').style.width='0%';}
 }
-function complete(){const total=runLength*state.lesson.steps.length;markMissed(total);const percent=state.judged?Math.round(state.hits/state.judged*100):0;
+function complete(){if(!state.lesson)return;const total=runLength*state.lesson.steps.length;markMissed(total);const percent=state.judged?Math.round(state.hits/state.judged*100):0;
   const prev=state.records[state.lesson.id]||{bestPercent:0,completed:0};state.records[state.lesson.id]={bestPercent:Math.max(prev.bestPercent,percent),completed:prev.completed+1,lastPercent:percent};save();
   stop(true);$('progressFill').style.width='100%';updateScore();setFeedback(`🏁 8 ölçü tamamlandı! Başarı: %${percent} (${state.hits} doğru / ${state.misses} hata veya kaçan). ${percent>=80?'Yeni derse geçmeye hazırsın!':'Bir tur daha dene; hızını yavaşlatabilirsin.'}`,percent>=80?'good':'');
 }
-function changeLesson(id){if(state.playing)return;state.lesson=state.importedLesson?.id===id?state.importedLesson:getLesson(id);$('sync').disabled=!!state.lesson.performanceEvents;$('demo').disabled=!!state.lesson.performanceEvents;$('goal').textContent=state.lesson.performanceEvents?'Sürekli döngü':'Hedef: 8 ölçü';if(state.lesson.performanceEvents)$('sync').value='app';selectSync();setBpm(state.lesson.defaultBpm);resetSession();lessonMarkup();}
-function changeLevelGroup(id){if(state.playing)return;state.levelGroup=id;const selected=fillLessonOptions(state.lesson.id);if(selected!==state.lesson.id)changeLesson(selected);else updateLevelTag();}
+function changeLesson(id){if(state.playing)return;state.lesson=state.importedLesson?.id===id?state.importedLesson:getLesson(id);$('sync').disabled=!!state.lesson.performanceEvents;$('goal').textContent=state.lesson.performanceEvents?'Sürekli döngü':'Hedef: 8 ölçü';if(state.lesson.performanceEvents)$('sync').value='app';selectSync();setBpm(state.lesson.defaultBpm);resetSession();lessonMarkup();}
+function changeLevelGroup(id){if(state.playing||!state.lesson)return;state.levelGroup=id;const selected=fillLessonOptions(state.lesson.id);if(selected!==state.lesson.id)changeLesson(selected);else updateLevelTag();}
 function handleClock(data,time,portId=null){const c=state.clock;if(!state.playing||state.mode!=='clock'||!c.armed)return;
   if(c.sourceId && portId && c.sourceId!==portId)return;
   if(data===0xfa){if(!c.sourceId)c.sourceId=portId;c.running=true;c.ticks=0;c.lastTickMs=0;c.avgTickMs=0;c.pulseTimes=[];state.waitingClock=true;resetSession();setStatus('● Pa4X START alındı',true);setFeedback('Pa4X START algılandı. MIDI Clock darbeleri bekleniyor.');return;}
@@ -306,7 +303,7 @@ function setupMidiPlayer(file,suggestions){
   $('midiPlayer').hidden=false;updateMidiPlayerUI(player.snapshot());updateOutputControls();
 }
 function loadMidiAnalysis(file,uploadedName){
-  if(state.lesson.id==='midi-import'){state.importedLesson=null;state.levelGroup='all';$('levelGroup').value='all';fillLessonOptions(LESSONS[0].id);changeLesson(LESSONS[0].id);}state.importedMidi=file;file.uploadedName=uploadedName;
+  state.importedMidi=file;file.uploadedName=uploadedName;
   const suggestions=suggestedChannels(file);if(!suggestions.bass)throw new Error('Dosyada nota içeren bir bas kanalı bulunamadı.');
   const analysisChannels=[suggestions.bass,suggestions.chord].filter(Boolean);state.importedKey=detectKey(file,analysisChannels);
   const active=file.channels.filter(c=>c.noteCount),bars=Math.min(500,Math.floor(file.endTick/measureTicks(file.ppq,meterAt(file,0)))),variableMeter=new Set(file.meterMap.map(m=>`${m.numerator}/${m.denominator}`)).size>1;
@@ -333,7 +330,7 @@ function loadMidiAnalysis(file,uploadedName){
   $('midiImportStatus').textContent=`${uploadedName} tarayıcıda analiz edildi. ${state.midiSections.length?`${state.midiSections.length} style bölümü bulundu.`:'Style işareti bulunamadı; ölçü seçebilirsin.'}${variableMeter?' Seçilen bölümde ölçü sabit olmalı.':''}`;
   $('midiImportStatus').classList.remove('good','bad','warn');$('midiImportStatus').classList.add('good');
 }
-async function handleMidiFile(event){const file=event.target.files?.[0];if(!file)return;if(state.playing)stop();state.midiPlayer?.dispose();state.midiPlayer=null;if(state.lesson.id==='midi-import'){state.importedLesson=null;state.levelGroup='all';$('levelGroup').value='all';fillLessonOptions(LESSONS[0].id);changeLesson(LESSONS[0].id);}state.importedMidi=null;$('midiPlayer').hidden=true;$('midiImportStatus').classList.remove('good','bad','warn');$('midiImportStatus').textContent='MIDI dosyası analiz ediliyor…';try{const parsed=parseMidiFile(await file.arrayBuffer());loadMidiAnalysis(parsed,file.name);}catch(error){$('midiAnalysis').hidden=true;$('midiImportStatus').classList.add('bad');$('midiImportStatus').textContent=error.message||'MIDI dosyası okunamadı.';}}
+async function handleMidiFile(event){const file=event.target.files?.[0];if(!file)return;if(state.playing)stop();state.midiPlayer?.dispose();state.midiPlayer=null;state.importedMidi=null;$('midiPlayer').hidden=true;$('midiImportStatus').classList.remove('good','bad','warn');$('midiImportStatus').textContent='MIDI dosyası analiz ediliyor…';try{const parsed=parseMidiFile(await file.arrayBuffer());loadMidiAnalysis(parsed,file.name);}catch(error){$('midiAnalysis').hidden=true;$('midiImportStatus').classList.add('bad');$('midiImportStatus').textContent=error.message||'MIDI dosyası okunamadı.';}}
 function prepareMidiLesson(){if(!state.importedMidi)return;if(state.playing){setFeedback('Yeni bölüm hazırlamadan önce çalışmayı durdur.','bad');return;}try{
   const file=state.importedMidi,barTicks=measureTicks(file.ppq,meterAt(file,0)),startTick=(Number($('midiStartBar').value)-1)*barTicks;
   const section=state.midiSections.length?state.midiSections[Number($('midiSection').value)]:{label:`Ölçü ${$('midiStartBar').value}`,startTick,endTick:startTick+Number($('midiBarCount').value)*barTicks};
@@ -358,10 +355,10 @@ function initialize(){drawKeyboard();$('levelGroup').value=state.levelGroup;fill
   $('midiPlayerAll').addEventListener('click',()=>midiPlayerAction(()=>state.midiPlayer?.selectChannels(state.midiPlayer.channels.map(ch=>ch.channel))));
   $('midiPlayerPractice').addEventListener('click',()=>midiPlayerAction(()=>state.midiPlayer?.selectChannels(state.midiPracticeChannels)));
   $('midiPlayerMute').addEventListener('click',()=>midiPlayerAction(()=>state.midiPlayer?.selectChannels([])));
-  $('reset').addEventListener('click',()=>{if(!window.confirm('Bu dersin yerel başarı kaydı sıfırlansın mı?'))return;delete state.records[state.lesson.id];save();resetSession();setFeedback('Bu dersin ilerleme kaydı sıfırlandı.');});
+  $('reset').addEventListener('click',()=>{if(!state.lesson || !window.confirm('Bu dersin yerel başarı kaydı sıfırlansın mı?'))return;delete state.records[state.lesson.id];save();resetSession();setFeedback('Bu dersin ilerleme kaydı sıfırlandı.');});
   document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state.midiPlayer?.playing)state.midiPlayer.pause();if(state.playing&&state.mode==='app'){stop();setFeedback('Sekme arka plana geçtiği için ritim durduruldu. Tekrar başlatabilirsin.');}}});
   window.addEventListener('pagehide',()=>{stop();state.midiPlayer?.dispose();});
-  setBpm(state.lesson.defaultBpm);lessonMarkup();selectSync();
+  if(state.lesson){setBpm(state.lesson.defaultBpm);lessonMarkup();}selectSync();
   if('serviceWorker' in navigator && /^https?:/.test(location.protocol))navigator.serviceWorker.register('./sw.js').catch(()=>{});
   window.basakorDebug={version:VERSION,getState:()=>({playing:state.playing,lesson:state.lesson.id,levelGroup:state.levelGroup,mode:state.mode,bpm:state.bpm,bassVolume:state.bassVolume,chordVolume:state.chordVolume,hits:state.hits,misses:state.misses,imported:!!state.importedMidi}),simulateMidi:bytes=>handleMidi({data:new Uint8Array(bytes)})};
 }
