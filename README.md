@@ -7,7 +7,7 @@ Türkçe, sıfır bağımlılıklı bir **Korg Pa4X bas–akor eğitim PWA'sı**
 - **14 çalışma kalıbı:** 4/4, 6/8, 5/8, 7/8, 9/8, 12/8; farklı aksak ölçü gruplamaları; Em→Am, Em→B7 ve Am→Em.
 - **MP3'ten çalışma hazırlama (Codespace):** MP3'ü Codespace analiz sunucusuna gönderir; Demucs bas, davul, vokal ve eşliği ayırır, Basic Pitch bası MIDI'ye çevirir, tahmini piano akorlarını MIDI'ye ekler. Birleşik MIDI doğrudan mevcut çalışma akışına aktarılır. Codespace sunucusu gerekir; GitHub Pages bu Python analizini çalıştırmaz.
 - **MIDI şarkıdan çalışma:** `.mid` dosyasını tarayıcıda açar; ölçü, tempo, track/kanal, program ve nota aralıklarını çözümler. Bas ve akor kaynaklarını seçtirip 1/2/4 ölçülük bölümü çalışma döngüsüne dönüştürür.
-- **MIDI oynatıcı:** Dosyanın tamamını çalar; başlat/duraklat, başa sar, konum, hız, kanal sessize alma ve tek kanal dinleme kontrolleri sunar. Hedef karara transpoze dinleme seçeneği vardır; davul kanalı değişmeden kalır. Her kanala farklı General MIDI enstrümanı atanabilir; bu değişiklik yalnızca önizleme sesini etkiler. Sesler tarayıcıda sentezlenir; dosya sunucuya gönderilmez.
+- **MIDI oynatıcı:** Dosyanın tamamını çalar; başlat/duraklat, başa sar, konum, hız, kanal sessize alma ve tek kanal dinleme kontrolleri sunar. Varsayılan ses tarayıcıda sentezlenir; isteğe bağlı MIDI çıkışı seçildiğinde nota, banka, program ve kontrol mesajları bağlı cihaza gönderilir. General MIDI enstrüman seçimi yalnızca tarayıcı önizlemesini etkiler. Dosya sunucuya gönderilmez.
 - MIDI'deki kaynak kararını tahmin eder ve düzenlemene izin verir. Hedef varsayılan olarak **Mi karar**dır; bas ve akor notaları aynı aralıkla taşınır, dosyanın majör/minör ilişkisi korunur, davul kanalı transpoze edilmez.
 - Etkin piyano kanalı yoksa çok sesli bir armoni kanalı (ör. gitar veya yaylılar) akor kaynağı olarak önerilir; akor çalışması mevcut e-piyano tonlarıyla sunulur.
 - **Seviye ve kalıp seçimi:** Başlangıç, ritim kalıpları, akor geçişleri veya tüm kalıplar; ilk açılışta 14 kalıbın tamamı seçilebilir.
@@ -50,7 +50,14 @@ Alternatif: Komut satırından bu klasörde `python -m http.server 8765`. Başka
 7. **MIDI Clock sayacı ilerlemiyorsa** MIDI ayarlarını/giriş portunu kontrol et. Clock sinyali gelmiyorsa uygulamada **Uygulama davulu** moduna geri dön.
 8. Akor algılanmıyorsa Pa4X'in MIDI OUT/USB portundan klavye notalarının gönderildiğini kontrol et; `MIDI giriş cihazı`, `Giriş kanalı`, `En yüksek nota` filtrelerini değiştir.
 
-**Önemli:** MIDI Clock üzerinden otomatik vuruş eşzamanlaması henüz bir Pa4X'e bağlanarak denenmedi. Cihazın port yönlendirmesi, tuş gönderimi, latency ve Clock Start davranışı gerçek donanımda kalibre edilmeli. Uygulama MIDI verisini yalnızca **okur**; Pa4X'e nota, program değişimi veya MIDI komutu göndermez. Bu nedenle Pa4X ayarlarını uygulama değiştiremez.
+**Önemli:** MIDI Clock üzerinden otomatik vuruş eşzamanlaması henüz bir Pa4X'e bağlanarak denenmedi. Cihazın port yönlendirmesi, tuş gönderimi, latency ve Clock Start davranışı gerçek donanımda kalibre edilmeli.
+
+## MIDI dosyasını Pa4X sesleriyle dinlemek (deneysel)
+
+1. Kendi setini Pa4X'e yükle, USB DEVICE ile bilgisayara bağla ve Chrome/Edge'de **MIDI bağlantısını aç**.
+2. MIDI dosyasını seç. Oynatıcıda **MIDI oynatıcı çıkışı** altından Pa4X'in ses üreten çıkış portunu seç; ardından **Çal**. Ses bilgisayardan değil Pa4X'ten duyulur. Port ve MIDI kanal alım ayarlarını cihazda kontrol et.
+3. Dosyadaki Bank Select, Program Change ve diğer kanal mesajları Pa4X'e gönderilir. SysEx gönderilmez. Seslerin doğru çıkması setin ve dosyadaki banka/program numaralarının eşleşmesine bağlıdır; MIDI dosyası ses örneklerini içermez. Kanal 10 ve dosyada Bank Select MSB 120 kullanılan kanallar transpoze edilmez; farklı davul yönlendirmelerini cihazda doğrula.
+4. Duraklatma, durdurma ve diğer oynatma değişiklikleri kullanılan kanalları susturur; o kanallarda elle çalınan sesler de kesilebilir. Bu özellik gerçek Pa4X üzerinde henüz doğrulanmadı. Style export statik bir MIDI kaydıdır, canlı arranger davranışını yeniden oluşturmaz.
 
 ## iPhone'da kullanmak
 
@@ -80,7 +87,7 @@ Bas gitar kayıtları Andrea Biasior tarafından Yamaha RBX ile kaydedilmiş ve 
 
 E-piyano örnekleri Roberto tarafından FreePats için Hexter FM synthesizer ile üretilmiş; Yamaha DX7 e-piyano tarzı klasik ve parlak tonları taklit eder. CC0 1.0 lisanslıdır: [FreePats Synthesized Piano](https://freepats.zenvoid.org/ElectricPiano/synthesized-piano.html) · [FM Piano 1](https://github.com/freepats/fm-piano1) · [FM Piano 2](https://github.com/freepats/fm-piano2). Uygulamadaki kısa WAV örnekleri, kaynak seslerin dönüştürülmüş ve yeniden örneklenmiş sürümleridir.
 
-Gizlilik: MIDI yükleyicisi dosyayı tarayıcıda işler. MP3 analiz paneli dosyayı yalnızca açtığın Codespace sunucusuna gönderir; GitHub deposuna veya Pages'e yüklemez. Codespaces port görünürlüğünü Private bırak. MIDI yalnızca izin verildiğinde okunur.
+Gizlilik: MIDI yükleyicisi dosyayı tarayıcıda işler. MP3 analiz paneli dosyayı yalnızca açtığın Codespace sunucusuna gönderir; GitHub deposuna veya Pages'e yüklemez. Codespaces port görünürlüğünü Private bırak. MIDI erişimi izin gerektirir; dosya olayları yalnızca bir çıkış seçilirse cihaza gönderilir.
 
 ## Bilinen sınırlamalar ve sonraki geliştirme
 

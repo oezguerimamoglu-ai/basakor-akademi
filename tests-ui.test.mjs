@@ -12,7 +12,7 @@ class MockElement{
   querySelectorAll(){return []}
   get outerHTML(){return `<option value="${this.value}">${this.textContent}</option>`}
 }
-const ids='statusPill levelTag levelGroup lesson tempoValue bpm sync bassTone epianoTone bassVolume bassVolumeValue chordVolume chordVolumeValue demo strict play stop tap sourceHint meterTag measure measureProgress actionType actionNote actionDetail lessonDescription grouping beats feedback pads keyboard success mistakes accuracy progressFill completedMessage reset midiStatus connect device channel maxnote midiLast clockStatus instructions midiFile midiImportStatus midiAnalysis midiSummary midiMappingHint midiBassChannel midiChordChannel midiSourceKey midiTargetKey midiStartBar midiBarCount prepareMidiLesson midiChannelSummary midiPlayer midiPlayerPlay midiPlayerPause midiPlayerStop midiSeek midiTime midiPlayerRate midiPlayerChannelCount midiPlayerChannels midiPlayerAll midiPlayerPractice midiPlayerMute midiTransposePlayback midiTransposeLabel audioFile analyzeAudio audioServiceLabel audioAnalysisStatus audioProgressArea audioProgress audioProgressText audioStage audioProgressHint audioResults audioSummary audioLoadPractice downloadBassWav downloadBassMidi downloadChords downloadReport audioChordPreview'.split(' ');
+const ids='goal statusPill levelTag levelGroup lesson tempoValue bpm sync bassTone epianoTone bassVolume bassVolumeValue chordVolume chordVolumeValue demo strict play stop tap sourceHint meterTag measure measureProgress actionType actionNote actionDetail lessonDescription grouping beats feedback pads keyboard success mistakes accuracy progressFill completedMessage reset midiStatus connect device channel maxnote midiLast clockStatus instructions midiFile midiImportStatus midiAnalysis midiSummary midiMappingHint midiSection midiStartBarField midiBarCountField midiBassChannel midiChordChannel midiSourceKey midiTargetKey midiStartBar midiBarCount prepareMidiLesson midiChannelSummary midiPlayer midiPlayerPlay midiPlayerPause midiPlayerStop midiOutput midiOutputStatus midiSeek midiTime midiPlayerRate midiPlayerChannelCount midiPlayerChannels midiPlayerAll midiPlayerPractice midiPlayerMute midiTransposePlayback midiTransposeLabel'.split(' ');
 const nodes=Object.fromEntries(ids.map(id=>[id,new MockElement(id)]));
 nodes.maxnote.value='83';nodes.channel.value='all';nodes.sync.value='app';nodes.bassTone.value='finger';nodes.epianoTone.value='ep1';nodes.bassVolume.value='100';nodes.chordVolume.value='100';
 globalThis.document={getElementById:id=>nodes[id]||null,querySelectorAll:()=>[],createElement:()=>new MockElement(),addEventListener(){},hidden:false};
@@ -60,9 +60,16 @@ test('level and pattern selectors work together',()=>{
 test('separate Pa4X KEYBOARD note port and SOUND MIDI Clock port',async()=>{
   const keyboard={id:'kbd',name:'Pa4X KEYBOARD',onmidimessage:null};
   const sound={id:'snd',name:'Pa4X SOUND',onmidimessage:null};
-  navigator.requestMIDIAccess=async()=>({inputs:new Map([[keyboard.id,keyboard],[sound.id,sound]]),onstatechange:null});
+  const output={id:'out',name:'Pa4X SOUND',state:'connected'};
+  const access={inputs:new Map([[keyboard.id,keyboard],[sound.id,sound]]),outputs:new Map([[output.id,output]]),onstatechange:null};
+  navigator.requestMIDIAccess=async()=>access;
   await nodes.connect.events.click();
   assert.equal(nodes.device.value,'kbd');
+  assert.ok(nodes.midiOutput.children.some(option=>option.value==='out'));
+  nodes.midiOutput.value='out';nodes.midiOutput.events.change();
+  assert.match(nodes.midiOutputStatus.textContent,/Pa4X SOUND/);
+  output.state='disconnected';access.onstatechange();
+  assert.equal(nodes.midiOutput.value,'');assert.match(nodes.midiOutputStatus.textContent,/bağlantısı kesildi/);
   assert.equal(typeof keyboard.onmidimessage,'function');assert.equal(typeof sound.onmidimessage,'function');
   const before=nodes.midiLast.textContent;
   sound.onmidimessage({data:new Uint8Array([0x90,40,90])});

@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {LESSONS,getLesson,getSteps,matchEvent,msPerStep,nearestStep,timingGrade,currentEvent,countableEvents} from './music.mjs';
-import {parseMidiFile,suggestedChannels,buildMidiLesson,tempoAt,meterAt,GM_INSTRUMENTS} from './midi-file.mjs';
-import {MidiFilePlayer,midiTickToSeconds,midiPlaybackEvents,midiPlaybackNote} from './midi-player.mjs';
+import {parseMidiFile,suggestedChannels,buildMidiLesson,buildMidiSectionLesson,styleSections,tempoAt,meterAt,GM_INSTRUMENTS} from './midi-file.mjs';
+import {MidiFilePlayer,MidiSectionPlayer,midiTickToSeconds,midiPlaybackEvents,midiPlaybackNote} from './midi-player.mjs';
 
 function vlq(value){let buffer=value&0x7f;while((value>>=7)){buffer<<=8;buffer|=(value&0x7f)|0x80;}const out=[];while(true){out.push(buffer&255);if(buffer&0x80)buffer>>=8;else break;}return out;}
 function midiFixture(){
@@ -30,5 +30,54 @@ test('SMF analyzer separates channels and prepares an E-centered practice loop',
 });
 test('MIDI lesson preparation rejects changing time signatures',()=>{const file=parseMidiFile(midiFixture());file.meterMap.push({tick:384,numerator:3,denominator:4});assert.throws(()=>buildMidiLesson(file,{bassChannel:2,chordChannel:5}),/ölçü işareti değişiyor/i);});
 test('MIDI player follows tempo changes and supports channel selection, instrument overrides, and transposition',()=>{const file=parseMidiFile(midiFixture());file.tempoMap.push({tick:96,bpm:60});assert.equal(midiTickToSeconds(file,384),3.5);const events=midiPlaybackEvents(file);assert.equal(events[0].startSeconds,0);assert.equal(events.find(e=>e.channel===5).startSeconds,.5);const player=new MidiFilePlayer(file,{contextProvider:()=>{throw new Error('Audio context must start only after a user gesture.')}});assert.equal(player.snapshot().enabledChannels.size,2);assert.equal(player.programFor(5,4),4);player.setChannelProgram(5,73);assert.equal(player.programFor(5,4),73);assert.equal(player.snapshot().programOverrides.get(5),73);player.setChannelProgram(5,null);assert.equal(player.programFor(5,4),4);player.setTransposeSemitones(5);player.setTransposeEnabled(true);assert.equal(player.snapshot().transposeEnabled,true);assert.equal(midiPlaybackNote(40,2,5,true),45);assert.equal(midiPlaybackNote(36,10,5,true),36,'percussion channel stays unchanged');player.setTransposeEnabled(false);assert.equal(midiPlaybackNote(40,2,5,false),40);player.soloChannel(5);assert.deepEqual([...player.snapshot().enabledChannels],[5]);player.selectChannels([2]);assert.deepEqual([...player.snapshot().enabledChannels],[2]);player.setChannelEnabled(2,false);assert.equal(player.snapshot().enabledChannels.size,0);});
+test('MIDI output preserves channel messages, drum notes, and cancels queued playback',async()=>{
+  const track=[0,0xb1,0,121,0,0xb1,32,65,0,0xc1,8,0,0xb1,11,100,0,0xe1,0,64,
+    0,0xba,0,120,0,0xba,32,64,0,0xca,1,0,0x91,40,90,0,0x9a,36,95,
+    ...vlq(96),0x81,40,0,0,0x8a,36,0,...vlq(96),0xff,0x2f,0];
+  const bytes=new Uint8Array([...Array.from('MThd',c=>c.charCodeAt(0)),0,0,0,6,0,0,0,1,0,96,
+    ...Array.from('MTrk',c=>c.charCodeAt(0)),0,0,0,track.length,...track]);
+  const file=parseMidiFile(bytes),sent=[],output={send:message=>sent.push([...message]),clear(){sent.push('clear');}};
+  const context={currentTime:0,state:'running',destination:{},createGain:()=>({gain:{},connect(){}})};
+  const player=new MidiFilePlayer(file,{contextProvider:()=>context});player.setOutput(output);player.setTransposeSemitones(5);player.setTransposeEnabled(true);
+  await player.play();
+  assert.ok(sent.some(m=>Array.isArray(m)&&m.join(',')==='177,0,121'));
+  assert.ok(sent.some(m=>Array.isArray(m)&&m.join(',')==='177,32,65'));
+  assert.ok(sent.some(m=>Array.isArray(m)&&m.join(',')==='193,8'));
+  assert.ok(sent.some(m=>Array.isArray(m)&&m.join(',')==='225,0,64'));
+  assert.ok(sent.some(m=>Array.isArray(m)&&m.join(',')==='145,45,90'));
+  assert.ok(sent.some(m=>Array.isArray(m)&&m.join(',')==='154,36,95'),'Korg drum channel 11 is not transposed');
+  context.currentTime=.5;player.pump();
+  assert.ok(sent.some(m=>Array.isArray(m)&&m.join(',')==='129,45,0'),'transposed notes receive the matching note-off');
+  assert.ok(sent.some(m=>Array.isArray(m)&&m.join(',')==='138,36,0'));
+  player.pause();assert.ok(sent.includes('clear'));assert.ok(sent.some(m=>Array.isArray(m)&&m.join(',')==='186,120,0'));
+  sent.length=0;player.seek(.25);await player.play();
+  assert.ok(sent.some(m=>Array.isArray(m)&&m.join(',')==='177,0,121'),'seek restores the bank');
+  assert.ok(sent.some(m=>Array.isArray(m)&&m.join(',')==='193,8'),'seek restores the program');
+  assert.ok(sent.some(m=>Array.isArray(m)&&m.join(',')==='177,11,100'),'seek restores controllers');
+  player.stop();
+});
+test('style markers include intro and variations and section lessons retain fast note onsets',()=>{
+  const file=parseMidiFile(midiFixture());
+  file.events.push({type:'marker',text:'i1cv1',tick:0},{type:'marker',text:'v1cv2',tick:384});
+  file.endTick=768;file.channels.find(c=>c.channel===2).notes.push({type:'note',channel:1,note:41,tick:20,end:30,velocity:90},{type:'note',channel:1,note:43,tick:40,end:50,velocity:90});
+  const sections=styleSections(file);assert.deepEqual(sections.map(s=>s.label),['Intro 1 · CV 1','Variation 1 · CV 2']);
+  const lesson=buildMidiSectionLesson(file,{section:sections[0],bassChannel:2,chordChannel:5,sourceKey:0,targetKey:2});
+  assert.deepEqual(lesson.performanceEvents.filter(e=>e.kind==='bass').map(e=>[e.tick,e.midi[0]]),[[0,42],[20,43],[40,45]]);
+  assert.deepEqual(lesson.performanceEvents.find(e=>e.kind==='chord').midi,[62,66,69]);
+  file.tempoMap.push({tick:96,bpm:90});assert.throws(()=>buildMidiSectionLesson(file,{section:sections[0],bassChannel:2}),/tempo değişiyor/);
+});
+test('section accompaniment loops at lesson tempo, transposes, and applies channel mute and volume',()=>{
+  const file=parseMidiFile(midiFixture()),section={label:'Intro 1',startTick:0,endTick:384};
+  const lesson=buildMidiSectionLesson(file,{section,bassChannel:2,chordChannel:5,sourceKey:0,targetKey:2});
+  const sent=[],output={send:message=>sent.push([...message]),clear(){sent.push('clear');}},context={currentTime:0,destination:{},createGain:()=>({gain:{},connect(){}})};
+  const player=new MidiSectionPlayer(file,lesson,{context,output,channels:[2,5],bpm:120});player.start(0);
+  assert.ok(sent.some(m=>Array.isArray(m)&&m.join(',')==='145,42,100'));
+  player.setVolume(2,50);assert.ok(sent.some(m=>Array.isArray(m)&&m.join(',')==='177,7,50'));
+  player.setChannels([5]);assert.ok(sent.includes('clear'));
+  sent.length=0;context.currentTime=2.4;player.pump();
+  assert.ok(sent.some(m=>Array.isArray(m)&&m[0]===148),'next loop schedules selected chord channel');
+  assert.ok(!sent.some(m=>Array.isArray(m)&&m[0]===145),'muted bass stays muted on the next loop');
+  player.stop();assert.ok(sent.includes('clear'));
+});
 test('the shared instrument list contains all 128 General MIDI programs',()=>{assert.equal(GM_INSTRUMENTS.length,128);assert.equal(GM_INSTRUMENTS[0],'Piyano');assert.equal(GM_INSTRUMENTS[127],'Silah sesi');});
 test('combined bass and piano chord require both hands',()=>{const expected={kind:'combo',bassMidi:[40],chordMidi:[64,67,71]};assert.equal(matchEvent(expected,[40,64,67,71]).ok,true);assert.equal(matchEvent(expected,[40,64,67]).ok,false);assert.equal(matchEvent(expected,[41,64,67,71]).ok,false);});

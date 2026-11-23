@@ -28,7 +28,7 @@ export function parseMidiFile(input){
   if(format>1)throw new Error('Şimdilik Type 0 ve Type 1 MIDI dosyaları destekleniyor.');
   if(division&0x8000)throw new Error('SMPTE zaman kodlu MIDI dosyaları henüz desteklenmiyor.');
   if(!division)throw new Error('MIDI dosyasında zaman çözünürlüğü sıfır.');
-  const tracks=[];let offset=8+headerLength;
+  const tracks=[],midiEvents=[];let offset=8+headerLength;
   for(let ti=0;ti<trackCount;ti++){
     if(offset+8>bytes.length||String.fromCharCode(...bytes.slice(offset,offset+4))!=='MTrk')throw new Error(`MIDI ${ti+1}. parçası okunamadı.`);
     const len=u32(bytes,offset+4),end=offset+8+len;if(end>bytes.length)throw new Error('MIDI parçası dosya sonunda kesilmiş.');
@@ -49,6 +49,7 @@ export function parseMidiFile(input){
       status=first;const command=first&0xf0,channel=first&0x0f,size=(command===0xc0||command===0xd0)?1:2;
       if(state.i+size>data.length)throw new Error('MIDI nota olayı yarım kalmış.');
       const a=data[state.i++],b=size===2?data[state.i++]:0;
+      if(command>=0x80&&command<=0xe0)midiEvents.push({tick,channel,bytes:size===1?[first,a]:[first,a,b]});
       if(command===0xc0){programs.set(channel,a);events.push({tick,type:'program',channel,program:a});continue;}
       if(command===0x90&&b>0){const key=`${channel}:${a}`,queue=pending.get(key)||[];queue.push({tick,velocity:b,program:programs.get(channel)??null});pending.set(key,queue);continue;}
       if(command===0x80||(command===0x90&&b===0)){const key=`${channel}:${a}`,queue=pending.get(key)||[],start=queue.shift();if(start){events.push({tick:start.tick,type:'note',end:Math.max(start.tick+1,tick),channel,note:a,velocity:start.velocity,program:start.program});}continue;}
@@ -64,7 +65,8 @@ export function parseMidiFile(input){
   const channels=new Map();
   for(const event of all){if(event.type!=='program'&&event.type!=='note')continue;let c=channels.get(event.channel);if(!c){c={channel:event.channel+1,program:null,instrument:'Enstrüman belirtilmemiş',notes:[],noteCount:0,minNote:127,maxNote:0};channels.set(event.channel,c);}if(event.type==='program'){c.program=event.program;c.instrument=GM[event.program]||`Program ${event.program+1}`;}else{c.notes.push(event);c.noteCount++;c.minNote=Math.min(c.minNote,event.note);c.maxNote=Math.max(c.maxNote,event.note);}}
   const endTick=Math.max(0,...tracks.map(t=>t.endTick));
-  return {format,trackCount,ppq:division,tracks,title:tracks.find(t=>t.name)?.name||'Yüklenen MIDI',events:all,channels:[...channels.values()].sort((a,b)=>a.channel-b.channel),tempoMap,meterMap,keyMap,endTick};
+  midiEvents.sort((a,b)=>a.tick-b.tick);
+  return {format,trackCount,ppq:division,tracks,title:tracks.find(t=>t.name)?.name||'Yüklenen MIDI',events:all,midiEvents,channels:[...channels.values()].sort((a,b)=>a.channel-b.channel),tempoMap,meterMap,keyMap,endTick};
 }
 
 export function tempoAt(file,tick=0){return [...file.tempoMap].filter(e=>e.tick<=tick).at(-1)?.bpm||120;}
@@ -99,6 +101,58 @@ function chordFromPitchClasses(input,shift=0){
 const transpositionFor=(source,target)=>{let d=((target-source+12)%12);if(d>6)d-=12;return d;};
 function activeNotes(channel,tick){return channel.notes.filter(n=>n.tick<=tick&&n.end>tick).map(n=>n.note);}
 function makeStep(kind,label,notes,more={}){return {kind,label,notes:notes.join('–'),midi:notes,...more};}
+
+/** Locate Korg style elements exported as MIDI markers. */
+export function styleSections(file){
+  const markers=file.events.filter(event=>event.type==='marker').sort((a,b)=>a.tick-b.tick);
+  return markers.flatMap((marker,index)=>{
+    const match=/^(?:([ivfe])(\d+)|br)cv(\d+)$/i.exec(marker.text.trim());if(!match)return [];
+    const names={i:'Intro',v:'Variation',f:'Fill',e:'Ending'},kind=match[1]?.toLowerCase();
+    const label=kind?`${names[kind]} ${match[2]} · CV ${match[3]}`:`Break · CV ${match[3]}`;
+    let end=markers[index+1]?.tick??file.endTick;
+    if(index===markers.length-1){const bar=measureTicks(file.ppq,meterAt(file,marker.tick)),bars=(end-marker.tick)/bar;end=marker.tick+(Math.abs(bars-Math.round(bars))<.05?Math.round(bars):Math.ceil(bars))*bar;}
+    return end>marker.tick?[{label,startTick:marker.tick,endTick:end,marker:marker.text}]:[];
+  });
+}
+
+/** Preserve every bass onset and the selected channel's actual simultaneous notes. */
+export function buildMidiSectionLesson(file,{section,bassChannel,chordChannel=null,sourceKey=0,targetKey=sourceKey}={}){
+  if(!section||section.startTick<0||section.endTick<=section.startTick)throw new Error('Geçerli bir MIDI bölümü seç.');
+  const start=section.startTick,end=section.endTick,meter=meterAt(file,start),barTicks=measureTicks(file.ppq,meter);
+  if(file.meterMap.some(m=>m.tick>start&&m.tick<end&&(m.numerator!==meter.numerator||m.denominator!==meter.denominator)))throw new Error('Bu bölümde ölçü değişiyor; sabit ölçülü bir bölüm seç.');
+  const bpm=tempoAt(file,start);
+  if(file.tempoMap.some(t=>t.tick>start&&t.tick<end&&Math.abs(t.bpm-bpm)>.001))throw new Error('Bu bölümde tempo değişiyor; sabit tempolu bir bölüm seç.');
+  const bars=(end-start)/barTicks,stepTicks=file.ppq/4,stepsPerBar=barTicks/stepTicks,beatSteps=16/meter.denominator;
+  if(!Number.isInteger(bars)||!Number.isInteger(stepsPerBar)||!Number.isInteger(beatSteps))throw new Error('Bölüm tam ölçülerden veya desteklenen bir MIDI çözünürlüğünden oluşmuyor.');
+  const bass=file.channels.find(c=>c.channel===Number(bassChannel));
+  const chord=chordChannel?file.channels.find(c=>c.channel===Number(chordChannel)):null;
+  if(!bass?.notes.length)throw new Error('Geçerli bir bas kanalı seç.');
+  if(chordChannel&&(!chord||chord.channel===bass.channel))throw new Error('Bas ve akor için farklı kanallar seç.');
+  const shift=transpositionFor(Number(sourceKey),Number(targetKey)),events=[];
+  const selected=channel=>channel.notes.filter(n=>n.tick>=start&&n.tick<end).sort((a,b)=>a.tick-b.tick);
+  const shifted=note=>{const n=note+shift;if(n<0||n>127)throw new Error('Transpozisyon MIDI nota aralığını aşıyor.');return n;};
+  const displayNote=n=>`${pcName(n)}${Math.floor(n/12)-1}`;
+  for(const note of selected(bass)){const n=shifted(note.note);events.push({...makeStep('bass',pcName(n),[n],{bassMidi:[n]}),notes:displayNote(n),tick:note.tick-start});}
+  if(chord){
+    const threshold=file.ppq*bpm*.020/60,groups=[];
+    for(const note of selected(chord)){const last=groups.at(-1);if(last&&note.tick-last.tick<=threshold)last.notes.push(shifted(note.note));else groups.push({tick:note.tick,notes:[shifted(note.note)]});}
+    for(const group of groups){const notes=[...new Set(group.notes)].sort((a,b)=>a-b);events.push({...makeStep('chord',notes.map(pcName).join('–'),notes,{chordMidi:notes}),notes:notes.map(displayNote).join('–'),tick:group.tick-start});}
+  }
+  events.sort((a,b)=>a.tick-b.tick||(a.kind==='bass'?-1:1));
+  if(!events.length)throw new Error('Bu bölümde seçilen kanallarda nota yok.');
+  const cycles=Array.from({length:bars},()=>Array.from({length:stepsPerBar},()=>({kind:'rest',label:'ES',notes:'–',midi:[]})));
+  for(const event of events){const bar=Math.floor(event.tick/barTicks),step=Math.min(stepsPerBar-1,Math.floor((event.tick%barTicks)/stepTicks)),current=cycles[bar][step];
+    if(current.kind==='rest')cycles[bar][step]={...event};
+    else cycles[bar][step]={...current,label:`${current.label} + ${event.label}`,notes:`${current.notes} / ${event.notes}`};
+  }
+  return {id:'midi-import',level:99,title:`MIDI · ${section.label}`,meter:`${meter.numerator}/${meter.denominator}`,
+    grouping:Array.from({length:meter.numerator},()=>beatSteps),groupingText:`${meter.numerator} vuruş · 16’lık görünüm`,
+    denominator:16,description:`${section.label}: kanal ${bass.channel} bas${chord?` ve kanal ${chord.channel} sağ el`:''}. Notalar kayıt zamanlarında değerlendirilir.`,
+    defaultBpm:bpm,accent:Array.from({length:meter.numerator},(_,i)=>i*beatSteps),kickSteps:[0],snareSteps:[],beatSteps,
+    steps:cycles[0],songCycle:cycles,gridStepTicks:stepTicks,sourceStartMeasure:Math.floor(start/barTicks)+1,sourceBarCount:bars,
+    transposeSemitones:shift,targetKey:Number(targetKey),bassChannel:bass.channel,chordChannel:chord?.channel??null,
+    sectionStartTick:start,sectionEndTick:end,sectionTicks:end-start,ppq:file.ppq,performanceEvents:events};
+}
 
 /** Turn a selected MIDI section into a repeated, fixed-grid practice lesson. */
 export function buildMidiLesson(file,{bassChannel,chordChannel=null,sourceKey=0,targetKey=4,startBar=1,barCount=2,bpm=null}={}){
@@ -151,10 +205,11 @@ export function buildMidiLesson(file,{bassChannel,chordChannel=null,sourceKey=0,
 
 export function suggestedChannels(file){
   const active=file.channels.filter(c=>c.noteCount>0);
-  const bass=active.filter(c=>c.program!==null&&c.program>=32&&c.program<=39).sort((a,b)=>a.minNote-b.minNote)[0]||active.filter(c=>c.minNote<54).sort((a,b)=>a.minNote-b.minNote)[0]||null;
+  const drumChannels=new Set([10,...(file.midiEvents||[]).filter(e=>e.bytes[0]>>4===11&&e.bytes[1]===0&&e.bytes[2]===120).map(e=>e.channel+1)]);
+  const bass=active.filter(c=>!drumChannels.has(c.channel)&&c.program!==null&&c.program>=32&&c.program<=39).sort((a,b)=>a.minNote-b.minNote)[0]||active.filter(c=>!drumChannels.has(c.channel)&&c.minNote<54).sort((a,b)=>a.minNote-b.minNote)[0]||null;
   const drums=active.find(c=>c.channel===10)||null;
-  const piano=active.filter(c=>c.program!==null&&c.program<=5&&c.channel!==bass?.channel);
-  const poly=active.filter(c=>c.channel!==bass?.channel&&c.channel!==drums?.channel).map(c=>({...c,polyScore:c.notes.length/(Math.max(1,c.maxNote-c.minNote+1))})).sort((a,b)=>b.polyScore-a.polyScore);
+  const piano=active.filter(c=>c.program!==null&&c.program<=5&&c.channel!==bass?.channel&&!drumChannels.has(c.channel));
+  const poly=active.filter(c=>c.channel!==bass?.channel&&!drumChannels.has(c.channel)).map(c=>({...c,polyScore:c.notes.length/(Math.max(1,c.maxNote-c.minNote+1))})).sort((a,b)=>b.polyScore-a.polyScore);
   const chord=piano[0]||poly.sort((a,b)=>((b.program>=24&&b.program<=31?100:b.program>=48&&b.program<=55?10:0)+b.polyScore)-((a.program>=24&&a.program<=31?100:a.program>=48&&a.program<=55?10:0)+a.polyScore))[0]||null;
   return {bass:bass?.channel??null,chord:chord?.channel??null,drums:drums?.channel??null,hasActivePiano:piano.length>0};
 }

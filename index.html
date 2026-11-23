@@ -24,65 +24,44 @@
 
   <div class="appgrid">
     <main class="stack">
-      <section class="panel mp3-import" aria-labelledby="heading-mp3">
-        <div class="section-head"><h2 id="heading-mp3"><span class="number">00</span> MP3'ten bas–akor çalışması hazırla</h2><span id="audioServiceLabel" class="hint">Codespace analiz sunucusu gerekir</span></div>
-        <p class="subtle">MP3'ü yükle. Codespace bası, davulu ve eşliği ayırır; bası MIDI'ye, eşlikten tahmini akorları da piano notasına dönüştürür.</p>
-        <label class="file-picker" for="audioFile"><span>🎧 MP3 veya ses dosyası seç</span><input id="audioFile" type="file" accept=".mp3,.wav,.flac,.m4a,.aac,.ogg,audio/mpeg,audio/wav,audio/flac,audio/mp4,audio/ogg"></label>
-        <button id="analyzeAudio" type="button" class="btn primary full" disabled>MP3'ü analiz et</button>
-        <p id="audioAnalysisStatus" class="device-status" role="status">Analiz Codespace'in özel sunucusunda çalışır. GitHub Pages sürümü tek başına MP3 analizi yapmaz.</p>
-        <div id="audioProgressArea" class="audio-progress" hidden>
-          <div class="audio-progress-head"><strong id="audioStage">Bekleniyor</strong><span id="audioProgressText">0%</span></div>
-          <progress id="audioProgress" max="100" value="0"></progress>
-          <p id="audioProgressHint" class="meta">Ses ayrıştırma işlemi birkaç dakika sürebilir.</p>
-        </div>
-        <div id="audioResults" class="audio-results" hidden>
-          <div id="audioSummary" class="audio-summary"></div>
-          <button id="audioLoadPractice" type="button" class="btn primary full">🎹 Bas + tahmini akor çalışmasını aç</button>
-          <div class="audio-downloads">
-            <a id="downloadBassWav" class="audio-download" download>Bas WAV</a>
-            <a id="downloadBassMidi" class="audio-download" download>Bas MIDI</a>
-            <a id="downloadChords" class="audio-download" download>Akor listesi</a>
-            <a id="downloadReport" class="audio-download" download>Analiz raporu</a>
-          </div>
-          <details class="audio-chords"><summary>İlk akor tahminleri</summary><ol id="audioChordPreview"></ol></details>
-          <p class="meta">Akor, BPM ve ölçü otomatik tahmindir; kesin nota dökümü değildir. Yükleme ve geçici sonuçlar bu Codespace'te kalır.</p>
-        </div>
-      </section>
       <section class="panel midi-import" aria-labelledby="heading-import">
         <div class="section-head"><h2 id="heading-import"><span class="number">01</span> MIDI şarkıdan çalışma hazırla</h2><span class="hint">Dosya cihazında analiz edilir</span></div>
-        <p class="subtle">Bir .mid dosyası seç. Uygulama ölçü ve tempoyu inceler, bas ile akor kanallarını ayırır ve çalışmayı varsayılan olarak Mi kararına taşır. Majör/minör yapısı korunur; davul notaları transpoze edilmez.</p>
+        <p class="subtle">Bir .mid dosyası seç. İşaretli intro veya varyasyonu, bas ve sağ el kanalını seçip istediğin tona taşıyarak çalış.</p>
         <label class="file-picker" for="midiFile"><span>🎼 MIDI dosyası seç</span><input id="midiFile" type="file" accept=".mid,.midi,audio/midi,audio/x-midi"></label>
         <p id="midiImportStatus" class="device-status" role="status">Henüz MIDI şarkısı seçilmedi.</p>
         <div id="midiAnalysis" class="midi-analysis" hidden>
           <div id="midiSummary" class="midi-summary"></div>
           <div id="midiPlayer" class="midi-player" hidden>
             <div class="section-head midi-player-head"><h3>MIDI şarkıyı dinle</h3><span id="midiPlayerChannelCount" class="hint">0/0 kanal açık</span></div>
+            <label class="field" for="midiOutput"><span>MIDI oynatıcı çıkışı</span><select id="midiOutput"><option value="">Tarayıcı sesi</option></select></label>
+            <p id="midiOutputStatus" class="device-status" role="status">Pa4X çıkışı için MIDI bağlantısını aç ve çıkış portunu seç.</p>
             <div class="midi-player-controls"><button id="midiPlayerPlay" type="button" class="btn primary">▶ Çal</button><button id="midiPlayerPause" type="button" class="btn secondary" disabled>Ⅱ Duraklat</button><button id="midiPlayerStop" type="button" class="btn outline" disabled>■ Baştan</button></div>
             <label class="check midi-transpose"><input id="midiTransposePlayback" type="checkbox"><span id="midiTransposeLabel">Hedef karara transpoze dinle</span></label>
             <label class="midi-seek-label" for="midiSeek"><span>Şarkı konumu</span><strong id="midiTime" aria-live="off">0:00 / 0:00</strong></label>
             <input id="midiSeek" class="midi-seek" type="range" min="0" max="1000" step="1" value="0" disabled>
-            <label class="field midi-rate" for="midiPlayerRate"><span>Çalma hızı</span><select id="midiPlayerRate"><option value="0.5">%50</option><option value="0.75">%75</option><option value="1" selected>Normal</option><option value="1.25">%125</option><option value="1.5">%150</option></select></label>
-            <details class="midi-channel-details"><summary>Kanalları ve enstrümanları seç, tek başına dinle</summary>
+            <label class="field midi-rate" for="midiPlayerRate"><span>Önizleme hızı (ders temposu aşağıda)</span><select id="midiPlayerRate"><option value="0.5">%50</option><option value="0.75">%75</option><option value="1" selected>Normal</option><option value="1.25">%125</option><option value="1.5">%150</option></select></label>
+            <details class="midi-channel-details" open><summary>Kanalları aç/kapat ve ders seslerini ayarla</summary>
               <div class="midi-channel-tools"><button id="midiPlayerAll" type="button" class="textbtn">Tüm kanallar</button><button id="midiPlayerPractice" type="button" class="textbtn">Bas + akor</button><button id="midiPlayerMute" type="button" class="textbtn">Sessize al</button></div>
               <div id="midiPlayerChannels" class="midi-player-channels"></div>
             </details>
-            <p class="meta">Enstrüman seçimi yalnızca önizleme sesini değiştirir; MIDI dosyan ve çalışma notaları aynı kalır. Kanal 10 davul kanalıdır. Önizleme tarayıcıda sentezlenir.</p>
+            <p class="meta">Tarayıcı modunda enstrüman seçimi yalnızca sentezlenen önizlemeyi değiştirir. MIDI çıkışında dosyanın banka ve programları gönderilir; ses Pa4X'ten duyulur. Durdurma, kullanılan MIDI kanallarındaki sesleri susturur.</p>
           </div>
           <p id="midiMappingHint" class="mapping-hint"></p>
           <div class="fields midi-map">
+            <label class="field wide" for="midiSection"><span>Style bölümü</span><select id="midiSection"></select></label>
             <label class="field" for="midiBassChannel"><span>Bas kanalı</span><select id="midiBassChannel"></select></label>
             <label class="field" for="midiChordChannel"><span>Akor kaynağı</span><select id="midiChordChannel"></select></label>
             <label class="field" for="midiSourceKey"><span>Kaynak karar · tahmini</span><select id="midiSourceKey"></select></label>
             <label class="field" for="midiTargetKey"><span>Hedef karar</span><select id="midiTargetKey"></select></label>
-            <label class="field" for="midiStartBar"><span>Başlangıç ölçüsü</span><select id="midiStartBar"></select></label>
-            <label class="field" for="midiBarCount"><span>Döngü uzunluğu</span><select id="midiBarCount"><option value="1">1 ölçü</option><option value="2" selected>2 ölçü</option><option value="4">4 ölçü</option></select></label>
+            <label class="field" id="midiStartBarField" for="midiStartBar"><span>Başlangıç ölçüsü</span><select id="midiStartBar"></select></label>
+            <label class="field" id="midiBarCountField" for="midiBarCount"><span>Döngü uzunluğu</span><select id="midiBarCount"><option value="1">1 ölçü</option><option value="2" selected>2 ölçü</option><option value="4">4 ölçü</option></select></label>
           </div>
           <button id="prepareMidiLesson" class="btn primary full">Mi karar çalışmasını hazırla</button>
           <div id="midiChannelSummary" class="channel-summary"></div>
         </div>
       </section>
       <section class="panel settings" aria-labelledby="heading-settings">
-        <div class="section-head"><h2 id="heading-settings"><span class="number">02</span> Çalışmayı seç</h2><span class="hint" id="levelTag">Başlangıç</span></div>
+        <div class="section-head"><h2 id="heading-settings"><span class="number">01</span> Çalışmayı seç</h2><span class="hint" id="levelTag">Başlangıç</span></div>
         <div class="fields">
           <label class="field" for="levelGroup"><span>Seviye</span><select id="levelGroup"><option value="beginner">Başlangıç · temel</option><option value="meters">Orta · ritim kalıpları</option><option value="chords">İleri · akor geçişleri</option><option value="all" selected>Tüm seviyeler · 14 kalıp</option></select></label>
           <label class="field" for="lesson"><span>Çalışma kalıbı</span><select id="lesson"></select></label>
@@ -105,7 +84,7 @@
       </section>
 
       <section class="panel stage" aria-labelledby="heading-stage">
-        <div class="section-head"><h2 id="heading-stage"><span class="number">03</span> Ritmi takip et</h2><span class="hint" id="meterTag">4/4 · Düz ritim</span></div>
+        <div class="section-head"><h2 id="heading-stage"><span class="number">02</span> Ritmi takip et</h2><span class="hint" id="meterTag">4/4 · Düz ritim</span></div>
         <div class="nowbox">
           <div class="nowhead"><span id="measure">Ölçü 1</span><span id="measureProgress">1 / 8</span></div>
           <div class="nextlabel">ŞİMDİ ÇAL</div>
@@ -119,8 +98,8 @@
       </section>
 
       <section class="panel pads" aria-labelledby="heading-pads">
-        <div class="section-head"><h2 id="heading-pads"><span class="number">04</span> Buradan da çal</h2><span class="hint">Dokunmatik çalışma</span></div>
-        <p class="subtle">Davul vuruşuna denk gelecek şekilde doğru bas veya akor tuşuna dokun. Bilgisayarda fare veya klavye ile de çalışabilirsin.</p>
+        <div class="section-head"><h2 id="heading-pads"><span class="number">03</span> Buradan da çal</h2><span class="hint">Dokunmatik çalışma</span></div>
+        <p class="subtle">Zamanında doğru bas veya akor düğmesine dokun ya da Pa4X tuşlarını kullan.</p>
         <div class="padgrid" id="pads"></div>
         <div class="barhead keyboardHead"><strong>Sol el bası · sağ el akoru</strong><span>MIDI numaraları gösterilir</span></div>
         <div class="keyboardwrap"><div id="keyboard" class="keyboard" aria-label="Piyano klavyesi görseli"></div></div>

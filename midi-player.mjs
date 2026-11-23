@@ -125,38 +125,168 @@ function stopVoice(context,voice){
 
 /** Lightweight in-browser MIDI preview with seeking, tempo scaling, channel solo/mute, and instrument overrides. */
 export class MidiFilePlayer{
-  constructor(file,{contextProvider,onUpdate=()=>{}}={}){
+  constructor(file,{contextProvider,onUpdate=()=>{},onError=()=>{}}={}){
     this.file=file;this.events=midiPlaybackEvents(file);this.duration=midiTickToSeconds(file,file.endTick);
+    const toSeconds=createTickConverter(file);
+    this.outputEvents=(file.midiEvents||[]).map(event=>({...event,seconds:toSeconds(event.tick)}));
+    this.drumChannels=new Set([10,...this.outputEvents.filter(e=>e.bytes[0]>>4===11&&e.bytes[1]===0&&e.bytes[2]===120).map(e=>e.channel+1)]);
     this.channels=file.channels.filter(c=>c.noteCount>0).map(c=>({...c}));
     this.enabledChannels=new Set(this.channels.map(c=>c.channel));this.programOverrides=new Map();this.contextProvider=contextProvider||(()=>new (window.AudioContext||window.webkitAudioContext)());
-    this.onUpdate=onUpdate;this.context=null;this.master=null;this.position=0;this.rate=1;this.transposeSemitones=0;this.transposeEnabled=false;this.playing=false;this.anchor=0;this.cursor=0;this.timer=null;this.lastUiUpdate=0;
+    this.onUpdate=onUpdate;this.onError=onError;this.output=null;this.outputUsed=false;this.context=null;this.master=null;this.position=0;this.rate=1;this.transposeSemitones=0;this.transposeEnabled=false;this.playing=false;this.anchor=0;this.cursor=0;this.timer=null;this.lastUiUpdate=0;
+  }
+
+  static SectionPlayer=class{
+    constructor(file,lesson,{context,output=null,channels=[],volumes=new Map(),bpm,onError=()=>{}}){
+      this.file=file;this.lesson=lesson;this.context=context;this.output=output;this.channels=new Set(channels);
+      this.volumes=new Map(volumes);this.channelGains=new Map();
+      this.bpm=bpm;this.onError=onError;this.timer=null;this.playing=false;this.anchor=0;this.loop=0;this.cursor=0;
+      this.ticksPerSecond=file.ppq*bpm/60;
+      this.drumChannels=new Set([10,...(file.midiEvents||[]).filter(e=>e.bytes[0]>>4===11&&e.bytes[1]===0&&e.bytes[2]===120).map(e=>e.channel+1)]);
+      this.timeline=output
+        ?(file.midiEvents||[]).filter(e=>e.tick>=lesson.sectionStartTick&&e.tick<lesson.sectionEndTick).map(e=>({...e,offset:e.tick-lesson.sectionStartTick}))
+        :file.events.filter(e=>e.type==='note'&&e.tick>=lesson.sectionStartTick&&e.tick<lesson.sectionEndTick).map(e=>({...e,offset:e.tick-lesson.sectionStartTick}));
+      this.master=context.createGain();this.master.gain.value=.72;this.master.connect(context.destination);
+      if(!output)for(const channel of file.channels){const gain=context.createGain();gain.gain.value=(this.volumes.get(channel.channel)??100)/100;gain.connect(this.master);this.channelGains.set(channel.channel,gain);}
+    };
+    volumeMessage(channel,tick){let base=100;for(const event of this.file.midiEvents||[]){if(event.tick>=tick)break;if(event.channel+1===channel&&event.bytes[0]>>4===11&&event.bytes[1]===7)base=event.bytes[2];}return [0xb0+channel-1,7,Math.round(base*(this.volumes.get(channel)??100)/100)];}
+    scaled(message){if(message[0]>>4===11&&message[1]===7)return [message[0],7,Math.round(message[2]*(this.volumes.get((message[0]&15)+1)??100)/100)];return message;}
+    stateMessages(tick){
+      const states=new Map();
+      for(const event of this.file.midiEvents||[]){
+        if(event.tick>=tick)break;
+        const channel=event.channel+1;if(!this.channels.has(channel))continue;
+        if(!states.has(channel))states.set(channel,{bank:new Map(),program:null,controls:new Map(),pitch:null,pressure:null});
+        const state=states.get(channel),[status,a]=event.bytes,command=status>>4;
+        if(command===11&&a<120){if(a===0||a===32)state.bank.set(a,event.bytes);else state.controls.set(a,event.bytes);}
+        else if(command===12)state.program={bytes:event.bytes,bank:new Map(state.bank)};
+        else if(command===14)state.pitch=event.bytes;
+        else if(command===13)state.pressure=event.bytes;
+      }
+      const messages=[];
+      for(const state of states.values()){
+        if(state.program){messages.push(...state.program.bank.values(),state.program.bytes);}
+        messages.push(...state.bank.values(),...state.controls.values());if(state.pitch)messages.push(state.pitch);if(state.pressure)messages.push(state.pressure);
+      }
+      return messages;
+    }
+    panic(timestamp){
+      if(!this.output)return;
+      for(const channel of this.file.channels.filter(c=>c.noteCount).map(c=>c.channel)){
+        this.output.send([0xb0+channel-1,64,0],timestamp);this.output.send([0xb0+channel-1,120,0],timestamp);this.output.send([0xb0+channel-1,123,0],timestamp);
+      }
+    }
+    start(delay=.32){
+      this.anchor=this.context.currentTime+delay;this.loop=0;this.cursor=-1;this.playing=true;
+      try{this.pump();this.timer=setInterval(()=>{try{this.pump();}catch(error){this.fail(error);}},25);}catch(error){this.fail(error);throw error;}
+    }
+    fail(error){try{this.stop();}catch(cleanupError){console.error('MIDI eşliği susturulamadı:',cleanupError);}this.onError(error);}
+    stop(){
+      this.playing=false;clearInterval(this.timer);this.timer=null;
+      if(this.output){this.output.clear();this.panic();}
+      for(const voice of [...activeVoices])stopVoice(this.context,voice);
+    }
+    setVolume(channel,volume){this.volumes.set(channel,Math.max(0,Math.min(100,Number(volume))));if(this.output)this.setChannels(this.channels,true);else{const gain=this.channelGains.get(channel);if(gain)gain.gain.value=this.volumes.get(channel)/100;}}
+    setChannels(channels,force=false){
+      const next=new Set(channels);if(!force&&next.size===this.channels.size&&[...next].every(channel=>this.channels.has(channel)))return;
+      if(!this.playing){this.channels=next;return;}
+      const elapsed=Math.max(0,(this.context.currentTime-this.anchor)*this.ticksPerSecond),length=this.lesson.sectionTicks;
+      if(this.output){this.output.clear();this.panic();}
+      for(const voice of [...activeVoices])stopVoice(this.context,voice);
+      this.channels=next;if(this.context.currentTime<this.anchor){this.loop=0;this.cursor=-1;this.pump();return;}
+      this.loop=Math.floor(elapsed/length);const offset=elapsed%length;
+      this.cursor=this.timeline.findIndex(event=>event.offset>offset);
+      if(this.cursor<0)this.cursor=this.timeline.length;
+      if(this.output){const tick=this.lesson.sectionStartTick+offset;for(const message of this.stateMessages(tick))this.output.send(this.scaled(message));for(const channel of this.channels)this.output.send(this.volumeMessage(channel,tick));}
+      this.pump();
+    }
+    pump(){
+      if(!this.playing)return;
+      const horizon=this.context.currentTime+.18,length=this.lesson.sectionTicks;
+      while(true){
+        const event=this.cursor<0?null:this.timeline[this.cursor],offset=this.cursor<0?0:event?.offset;
+        if(offset===undefined){this.loop++;this.cursor=-1;continue;}
+        const when=this.anchor+(this.loop*length+offset)/this.ticksPerSecond;if(when>horizon)break;
+        const timestamp=performance.now()+Math.max(0,when-this.context.currentTime)*1000;
+        if(this.cursor<0){if(this.output){if(this.loop>0)this.panic(timestamp);for(const message of this.stateMessages(this.lesson.sectionStartTick))this.output.send(this.scaled(message),timestamp);for(const channel of this.channels)if((this.volumes.get(channel)??100)!==100)this.output.send(this.volumeMessage(channel,this.lesson.sectionStartTick),timestamp);}this.cursor=0;continue;}
+        this.cursor++;
+        const channel=event.channel+1;if(!this.channels.has(channel))continue;
+        const shift=this.drumChannels.has(channel)?0:this.lesson.transposeSemitones;
+        if(this.output){
+          const bytes=[...event.bytes],command=bytes[0]>>4;if(command===8||command===9||command===10){bytes[1]+=shift;if(bytes[1]<0||bytes[1]>127)throw new Error(`Kanal ${channel}: transpozisyon nota aralığını aşıyor.`);}
+          this.output.send(this.scaled(bytes),timestamp);
+        }else{
+          const note=event.note+shift;if(note<0||note>127)throw new Error(`Kanal ${channel}: transpozisyon nota aralığını aşıyor.`);
+          const duration=(Math.min(event.end,this.lesson.sectionEndTick)-event.tick)/this.ticksPerSecond;
+          const output=this.channelGains.get(channel)||this.master;
+          if(this.drumChannels.has(channel))scheduleDrum(this.context,output,{...event,note,channel},when,duration);
+          else schedulePitched(this.context,output,{...event,note,channel},when,duration);
+        }
+      }
+    }
   }
   snapshot(){return {position:this.position,duration:this.duration,rate:this.rate,transposeSemitones:this.transposeSemitones,transposeEnabled:this.transposeEnabled,playing:this.playing,enabledChannels:new Set(this.enabledChannels),programOverrides:new Map(this.programOverrides),channels:this.channels};}
   emit(){this.onUpdate(this.snapshot());}
-  findCursor(position){let low=0,high=this.events.length;while(low<high){const mid=(low+high)>>1;if(this.events[mid].startSeconds<position-1e-6)low=mid+1;else high=mid;}return low;}
+  findCursor(position){const events=this.output?this.outputEvents:this.events;let low=0,high=events.length;while(low<high){const mid=(low+high)>>1;if((this.output?events[mid].seconds:events[mid].startSeconds)<position-1e-6)low=mid+1;else high=mid;}return low;}
+  setOutput(output){if(this.output===output)return;this.stop();this.output=output;this.cursor=0;this.emit();}
+  restoreOutputState(position){
+    if(!this.output||position<=0)return;
+    this.outputUsed=true;
+    const states=new Map();
+    for(const event of this.outputEvents){
+      if(event.seconds>=position-1e-6)break;
+      const channel=event.channel+1;if(!this.enabledChannels.has(channel))continue;
+      if(!states.has(channel))states.set(channel,{bank:new Map(),program:null,controls:new Map(),pitch:null,pressure:null});
+      const state=states.get(channel),[status,a]=event.bytes,command=status>>4;
+      if(command===11&&a<120){if(a===0||a===32)state.bank.set(a,event.bytes);else state.controls.set(a,event.bytes);}
+      else if(command===12)state.program={bytes:event.bytes,bank:new Map(state.bank)};
+      else if(command===14)state.pitch=event.bytes;
+      else if(command===13)state.pressure=event.bytes;
+    }
+    for(const state of states.values()){
+      if(state.program){for(const message of state.program.bank.values())this.output.send(message);this.output.send(state.program.bytes);}
+      for(const message of state.bank.values())this.output.send(message);
+      for(const message of state.controls.values())this.output.send(message);
+      if(state.pitch)this.output.send(state.pitch);if(state.pressure)this.output.send(state.pressure);
+    }
+  }
   currentPosition(){return this.playing&&this.context?clamp((this.context.currentTime-this.anchor)*this.rate,0,this.duration):this.position;}
   ensureAudio(){if(!this.context){this.context=this.contextProvider();this.master=this.context.createGain();this.master.gain.value=.72;this.master.connect(this.context.destination);}return this.context;}
   async play(){
     if(this.playing)return;const context=this.ensureAudio();if(context.state==='suspended')await context.resume();
-    if(this.position>=this.duration)this.position=0;this.anchor=context.currentTime-this.position/this.rate;this.cursor=this.findCursor(this.position);this.playing=true;
-    this.timer=setInterval(()=>this.pump(),25);this.pump();this.emit();
+    if(this.position>=this.duration)this.position=0;this.anchor=context.currentTime-this.position/this.rate;this.cursor=this.findCursor(this.position);
+    this.outputUsed=!!this.output;
+    try{this.restoreOutputState(this.position);this.playing=true;this.timer=setInterval(()=>{try{this.pump();}catch(error){this.fail(error);}},25);this.pump();}
+    catch(error){this.fail(error);throw error;}this.emit();
   }
+  fail(error){this.playing=false;clearInterval(this.timer);this.timer=null;try{this.stopVoices();}catch(cleanupError){console.error('MIDI çıkışı susturulamadı:',cleanupError);}this.emit();this.onError(error);}
   pause(){if(!this.playing)return;this.position=this.currentPosition();this.playing=false;clearInterval(this.timer);this.timer=null;this.stopVoices();this.emit();}
   stop(){if(this.playing){this.playing=false;clearInterval(this.timer);this.timer=null;}this.position=0;this.cursor=0;this.stopVoices();this.emit();}
-  seek(seconds){const wasPlaying=this.playing;if(wasPlaying){this.position=this.currentPosition();this.stopVoices();}this.position=clamp(Number(seconds)||0,0,this.duration);this.cursor=this.findCursor(this.position);if(wasPlaying&&this.context){this.anchor=this.context.currentTime-this.position/this.rate;this.pump();}this.emit();}
-  setRate(rate){const next=clamp(Number(rate)||1,.5,1.5);if(next===this.rate)return;const wasPlaying=this.playing;if(wasPlaying){this.position=this.currentPosition();this.stopVoices();}this.rate=next;this.cursor=this.findCursor(this.position);if(wasPlaying&&this.context){this.anchor=this.context.currentTime-this.position/this.rate;this.pump();}this.emit();}
-  refreshPlayback(){if(this.playing&&this.context){this.position=this.currentPosition();this.stopVoices();this.anchor=this.context.currentTime-this.position/this.rate;this.cursor=this.findCursor(this.position);this.pump();}this.emit();}
+  seek(seconds){const wasPlaying=this.playing;if(wasPlaying){this.position=this.currentPosition();this.stopVoices();}this.position=clamp(Number(seconds)||0,0,this.duration);this.cursor=this.findCursor(this.position);if(wasPlaying&&this.context){this.anchor=this.context.currentTime-this.position/this.rate;this.restoreOutputState(this.position);this.pump();}this.emit();}
+  setRate(rate){const next=clamp(Number(rate)||1,.5,1.5);if(next===this.rate)return;const wasPlaying=this.playing;if(wasPlaying){this.position=this.currentPosition();this.stopVoices();}this.rate=next;this.cursor=this.findCursor(this.position);if(wasPlaying&&this.context){this.anchor=this.context.currentTime-this.position/this.rate;this.restoreOutputState(this.position);this.pump();}this.emit();}
+  refreshPlayback(){if(this.playing&&this.context){this.position=this.currentPosition();this.stopVoices();this.anchor=this.context.currentTime-this.position/this.rate;this.cursor=this.findCursor(this.position);this.restoreOutputState(this.position);this.pump();}this.emit();}
   setTransposeSemitones(semitones){this.transposeSemitones=clamp(Math.round(Number(semitones)||0),-12,12);this.refreshPlayback();}
   setTransposeEnabled(enabled){this.transposeEnabled=Boolean(enabled);this.refreshPlayback();}
-  setChannelEnabled(channel,enabled){const value=Number(channel);if(enabled)this.enabledChannels.add(value);else{this.enabledChannels.delete(value);if(this.context)for(const voice of [...activeVoices])if(voice.channel===value)stopVoice(this.context,voice);}this.emit();}
+  setChannelEnabled(channel,enabled){const value=Number(channel);if(enabled)this.enabledChannels.add(value);else{this.enabledChannels.delete(value);if(this.context&&!this.output)for(const voice of [...activeVoices])if(voice.channel===value)stopVoice(this.context,voice);}if(this.output)this.refreshPlayback();else this.emit();}
   programFor(channel,sourceProgram=null){const value=Number(channel);if(this.programOverrides.has(value))return this.programOverrides.get(value);return sourceProgram??this.channels.find(c=>c.channel===value)?.program??0;}
   setChannelProgram(channel,program){const value=Number(channel);if(program===null||program==='')this.programOverrides.delete(value);else this.programOverrides.set(value,clamp(Math.round(Number(program)||0),0,127));if(this.context)for(const voice of [...activeVoices])if(voice.channel===value)stopVoice(this.context,voice);this.emit();}
-  soloChannel(channel){this.enabledChannels=new Set([Number(channel)]);if(this.context)for(const voice of [...activeVoices])if(voice.channel!==Number(channel))stopVoice(this.context,voice);this.emit();}
-  selectChannels(channels){this.enabledChannels=new Set(channels.map(Number));if(this.context)for(const voice of [...activeVoices])if(!this.enabledChannels.has(voice.channel))stopVoice(this.context,voice);this.emit();}
-  stopVoices(){if(!this.context)return;for(const voice of [...activeVoices])stopVoice(this.context,voice);}
+  soloChannel(channel){this.selectChannels([Number(channel)]);}
+  selectChannels(channels){this.enabledChannels=new Set(channels.map(Number));if(this.output){this.refreshPlayback();return;}if(this.context)for(const voice of [...activeVoices])if(!this.enabledChannels.has(voice.channel))stopVoice(this.context,voice);this.emit();}
+  stopVoices(){if(this.output&&this.outputUsed){this.outputUsed=false;this.output.clear();for(const {channel} of this.channels){this.output.send([0xb0+channel-1,64,0]);this.output.send([0xb0+channel-1,120,0]);this.output.send([0xb0+channel-1,123,0]);}}if(!this.context)return;for(const voice of [...activeVoices])stopVoice(this.context,voice);}
   pump(){
     if(!this.playing||!this.context)return;const context=this.context;this.position=this.currentPosition();
     const horizon=context.currentTime+.18;
+    if(this.output){
+      this.outputUsed=true;
+      while(this.cursor<this.outputEvents.length){
+        const event=this.outputEvents[this.cursor],when=this.anchor+event.seconds/this.rate;if(when>horizon)break;this.cursor++;
+        if(!this.enabledChannels.has(event.channel+1))continue;
+        const bytes=[...event.bytes],command=bytes[0]>>4,channel=event.channel+1;
+        if((command===8||command===9)&&this.transposeEnabled&&!this.drumChannels.has(channel)){bytes[1]+=this.transposeSemitones;if(bytes[1]<0||bytes[1]>127)continue;}
+        this.output.send(bytes,performance.now()+Math.max(0,when-context.currentTime)*1000);
+      }
+      if(this.position>=this.duration){this.playing=false;clearInterval(this.timer);this.timer=null;this.position=this.duration;this.stopVoices();this.emit();return;}
+      const now=performance.now();if(now-this.lastUiUpdate>65){this.lastUiUpdate=now;this.emit();}return;
+    }
     while(this.cursor<this.events.length){
       const event=this.events[this.cursor],when=this.anchor+event.startSeconds/this.rate;if(when>horizon)break;this.cursor++;
       if(!this.enabledChannels.has(event.channel))continue;
@@ -169,3 +299,5 @@ export class MidiFilePlayer{
   }
   dispose(){this.stop();this.onUpdate=()=>{};}
 }
+
+export const MidiSectionPlayer=MidiFilePlayer.SectionPlayer;

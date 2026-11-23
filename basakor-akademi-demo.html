@@ -49,6 +49,19 @@
 .beatgrid.song-grid .beat{min-height:78px}
 @media(max-width:650px){.file-picker{align-items:stretch;flex-direction:column;gap:10px}.file-picker input{width:100%}.channel-summary,.midi-player-channels{grid-template-columns:1fr}.volume-balance-controls{grid-template-columns:1fr;gap:3px}.midi-player-controls .btn{flex:1 1 30%;padding:9px 6px;font-size:11px}.midi-player-channel{display:grid;grid-template-columns:minmax(0,1fr) auto}.midi-player-channel-label{grid-column:1/-1}.midi-player-instrument{grid-column:1;width:100%;min-width:0}.midi-solo{grid-column:2;grid-row:2}.beatgrid.song-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 
+.audio-progress,.audio-results{margin-top:15px}
+.audio-progress-head{display:flex;justify-content:space-between;gap:10px;align-items:center;color:#dce8f6;font-size:12px;margin:0 0 8px}
+.audio-progress-head span{color:#a6edc1;font-variant-numeric:tabular-nums}
+.audio-progress progress{width:100%;height:12px;accent-color:#a6edc1}
+.audio-summary{padding:13px;border:1px solid #557963;border-radius:12px;background:#10251f;color:#c8f1d6;font-size:13px;line-height:1.6;margin-bottom:12px}
+.audio-downloads{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.audio-download{display:flex;align-items:center;justify-content:center;min-height:40px;padding:9px 11px;border:1px solid #50617e;border-radius:10px;background:#111d32;color:#d5e6f7;text-align:center;text-decoration:none;font-size:12px;font-weight:700}
+.audio-download:hover{border-color:#9be4bc;color:#a6edc1}
+.audio-chords{margin-top:12px}
+.audio-chords ol{max-height:240px;overflow:auto;padding-left:22px}
+.audio-chords li{padding:3px 0;font-variant-numeric:tabular-nums}
+@media(max-width:650px){.audio-downloads{grid-template-columns:1fr}}
+
   </style>
   <title>BasAkor Akademi | Bas–akor ve ritim çalış</title>
 </head>
@@ -56,7 +69,7 @@
 <div class="shell">
   <header class="topbar">
     <div class="brand"><div class="brand-icon" aria-hidden="true">♫</div><div>BasAkor <span>Akademi</span><small>PA4X PRATİK STÜDYOSU</small></div></div>
-  <div class="pill" id="statusPill" role="status">● Hazır · v0.3.5</div>
+  <div class="pill" id="statusPill" role="status">● Hazır · v0.3.6</div>
   </header>
   <section class="hero">
     <div class="eyebrow">🎹 MI KARAR İLE BAŞLA · RİTMİ KENDİN YÖNET</div>
@@ -67,7 +80,7 @@
   <div class="appgrid">
     <main class="stack">
       <section class="panel midi-import" aria-labelledby="heading-import">
-        <div class="section-head"><h2 id="heading-import"><span class="number">00</span> MIDI şarkıdan çalışma hazırla</h2><span class="hint">Dosya cihazında analiz edilir</span></div>
+        <div class="section-head"><h2 id="heading-import"><span class="number">01</span> MIDI şarkıdan çalışma hazırla</h2><span class="hint">Dosya cihazında analiz edilir</span></div>
         <p class="subtle">Bir .mid dosyası seç. Uygulama ölçü ve tempoyu inceler, bas ile akor kanallarını ayırır ve çalışmayı varsayılan olarak Mi kararına taşır. Majör/minör yapısı korunur; davul notaları transpoze edilmez.</p>
         <label class="file-picker" for="midiFile"><span>🎼 MIDI dosyası seç</span><input id="midiFile" type="file" accept=".mid,.midi,audio/midi,audio/x-midi"></label>
         <p id="midiImportStatus" class="device-status" role="status">Henüz MIDI şarkısı seçilmedi.</p>
@@ -75,6 +88,8 @@
           <div id="midiSummary" class="midi-summary"></div>
           <div id="midiPlayer" class="midi-player" hidden>
             <div class="section-head midi-player-head"><h3>MIDI şarkıyı dinle</h3><span id="midiPlayerChannelCount" class="hint">0/0 kanal açık</span></div>
+            <label class="field" for="midiOutput"><span>MIDI oynatıcı çıkışı</span><select id="midiOutput"><option value="">Tarayıcı sesi</option></select></label>
+            <p id="midiOutputStatus" class="device-status" role="status">Pa4X çıkışı için MIDI bağlantısını aç ve çıkış portunu seç.</p>
             <div class="midi-player-controls"><button id="midiPlayerPlay" type="button" class="btn primary">▶ Çal</button><button id="midiPlayerPause" type="button" class="btn secondary" disabled>Ⅱ Duraklat</button><button id="midiPlayerStop" type="button" class="btn outline" disabled>■ Baştan</button></div>
             <label class="check midi-transpose"><input id="midiTransposePlayback" type="checkbox"><span id="midiTransposeLabel">Hedef karara transpoze dinle</span></label>
             <label class="midi-seek-label" for="midiSeek"><span>Şarkı konumu</span><strong id="midiTime" aria-live="off">0:00 / 0:00</strong></label>
@@ -84,7 +99,7 @@
               <div class="midi-channel-tools"><button id="midiPlayerAll" type="button" class="textbtn">Tüm kanallar</button><button id="midiPlayerPractice" type="button" class="textbtn">Bas + akor</button><button id="midiPlayerMute" type="button" class="textbtn">Sessize al</button></div>
               <div id="midiPlayerChannels" class="midi-player-channels"></div>
             </details>
-            <p class="meta">Enstrüman seçimi yalnızca önizleme sesini değiştirir; MIDI dosyan ve çalışma notaları aynı kalır. Kanal 10 davul kanalıdır. Önizleme tarayıcıda sentezlenir.</p>
+            <p class="meta">Tarayıcı modunda enstrüman seçimi yalnızca sentezlenen önizlemeyi değiştirir. MIDI çıkışında dosyanın banka ve programları gönderilir; ses Pa4X'ten duyulur. Durdurma, kullanılan MIDI kanallarındaki sesleri susturur.</p>
           </div>
           <p id="midiMappingHint" class="mapping-hint"></p>
           <div class="fields midi-map">
@@ -171,11 +186,11 @@
       <section class="panel tips"><h2>💡 Nasıl çalışmalı?</h2><p>Önce 65 BPM'de 8 ölçü boyunca sol elde bas, sağ elde akor çalış. %80 başarıya ulaştığında tempoyu artır.</p></section>
     </aside>
   </div>
-  <footer>BasAkor Akademi v0.3.5 · Bas: Andrea Biasior / FreePats · E-piyano: Roberto / FreePats FM Piano 1–2 · CC0 1.0 · MIDI dosyaları bu cihazda işlenir · Pa4X MIDI Clock özelliği cihazda henüz test edilmedi.</footer>
+  <footer>BasAkor Akademi v0.3.6 · Bas: Andrea Biasior / FreePats · E-piyano: Roberto / FreePats FM Piano 1–2 · CC0 1.0 · MIDI dosyaları bu cihazda işlenir · Pa4X MIDI Clock özelliği cihazda henüz test edilmedi.</footer>
 </div>
 <script>
 // BasAkor Akademi — saf müzik/puanlama işlevleri; DOM veya cihaz bağımlılığı yok.
-const VERSION = '0.3.5';
+const VERSION = '0.3.6';
 
 const step=(kind,label,notes,options={})=>({kind,label,notes,...options});
 const noteName = n => {
@@ -293,7 +308,7 @@ function parseMidiFile(input){
   if(format>1)throw new Error('Şimdilik Type 0 ve Type 1 MIDI dosyaları destekleniyor.');
   if(division&0x8000)throw new Error('SMPTE zaman kodlu MIDI dosyaları henüz desteklenmiyor.');
   if(!division)throw new Error('MIDI dosyasında zaman çözünürlüğü sıfır.');
-  const tracks=[];let offset=8+headerLength;
+  const tracks=[],midiEvents=[];let offset=8+headerLength;
   for(let ti=0;ti<trackCount;ti++){
     if(offset+8>bytes.length||String.fromCharCode(...bytes.slice(offset,offset+4))!=='MTrk')throw new Error(`MIDI ${ti+1}. parçası okunamadı.`);
     const len=u32(bytes,offset+4),end=offset+8+len;if(end>bytes.length)throw new Error('MIDI parçası dosya sonunda kesilmiş.');
@@ -314,6 +329,7 @@ function parseMidiFile(input){
       status=first;const command=first&0xf0,channel=first&0x0f,size=(command===0xc0||command===0xd0)?1:2;
       if(state.i+size>data.length)throw new Error('MIDI nota olayı yarım kalmış.');
       const a=data[state.i++],b=size===2?data[state.i++]:0;
+      if(command>=0x80&&command<=0xe0)midiEvents.push({tick,channel,bytes:size===1?[first,a]:[first,a,b]});
       if(command===0xc0){programs.set(channel,a);events.push({tick,type:'program',channel,program:a});continue;}
       if(command===0x90&&b>0){const key=`${channel}:${a}`,queue=pending.get(key)||[];queue.push({tick,velocity:b,program:programs.get(channel)??null});pending.set(key,queue);continue;}
       if(command===0x80||(command===0x90&&b===0)){const key=`${channel}:${a}`,queue=pending.get(key)||[],start=queue.shift();if(start){events.push({tick:start.tick,type:'note',end:Math.max(start.tick+1,tick),channel,note:a,velocity:start.velocity,program:start.program});}continue;}
@@ -329,7 +345,8 @@ function parseMidiFile(input){
   const channels=new Map();
   for(const event of all){if(event.type!=='program'&&event.type!=='note')continue;let c=channels.get(event.channel);if(!c){c={channel:event.channel+1,program:null,instrument:'Enstrüman belirtilmemiş',notes:[],noteCount:0,minNote:127,maxNote:0};channels.set(event.channel,c);}if(event.type==='program'){c.program=event.program;c.instrument=GM[event.program]||`Program ${event.program+1}`;}else{c.notes.push(event);c.noteCount++;c.minNote=Math.min(c.minNote,event.note);c.maxNote=Math.max(c.maxNote,event.note);}}
   const endTick=Math.max(0,...tracks.map(t=>t.endTick));
-  return {format,trackCount,ppq:division,tracks,title:tracks.find(t=>t.name)?.name||'Yüklenen MIDI',events:all,channels:[...channels.values()].sort((a,b)=>a.channel-b.channel),tempoMap,meterMap,keyMap,endTick};
+  midiEvents.sort((a,b)=>a.tick-b.tick);
+  return {format,trackCount,ppq:division,tracks,title:tracks.find(t=>t.name)?.name||'Yüklenen MIDI',events:all,midiEvents,channels:[...channels.values()].sort((a,b)=>a.channel-b.channel),tempoMap,meterMap,keyMap,endTick};
 }
 
 function tempoAt(file,tick=0){return [...file.tempoMap].filter(e=>e.tick<=tick).at(-1)?.bpm||120;}
@@ -555,38 +572,78 @@ function stopVoice(context,voice){
 
 /** Lightweight in-browser MIDI preview with seeking, tempo scaling, channel solo/mute, and instrument overrides. */
 class MidiFilePlayer{
-  constructor(file,{contextProvider,onUpdate=()=>{}}={}){
+  constructor(file,{contextProvider,onUpdate=()=>{},onError=()=>{}}={}){
     this.file=file;this.events=midiPlaybackEvents(file);this.duration=midiTickToSeconds(file,file.endTick);
+    const toSeconds=createTickConverter(file);
+    this.outputEvents=(file.midiEvents||[]).map(event=>({...event,seconds:toSeconds(event.tick)}));
+    this.drumChannels=new Set([10,...this.outputEvents.filter(e=>e.bytes[0]>>4===11&&e.bytes[1]===0&&e.bytes[2]===120).map(e=>e.channel+1)]);
     this.channels=file.channels.filter(c=>c.noteCount>0).map(c=>({...c}));
     this.enabledChannels=new Set(this.channels.map(c=>c.channel));this.programOverrides=new Map();this.contextProvider=contextProvider||(()=>new (window.AudioContext||window.webkitAudioContext)());
-    this.onUpdate=onUpdate;this.context=null;this.master=null;this.position=0;this.rate=1;this.transposeSemitones=0;this.transposeEnabled=false;this.playing=false;this.anchor=0;this.cursor=0;this.timer=null;this.lastUiUpdate=0;
+    this.onUpdate=onUpdate;this.onError=onError;this.output=null;this.outputUsed=false;this.context=null;this.master=null;this.position=0;this.rate=1;this.transposeSemitones=0;this.transposeEnabled=false;this.playing=false;this.anchor=0;this.cursor=0;this.timer=null;this.lastUiUpdate=0;
   }
   snapshot(){return {position:this.position,duration:this.duration,rate:this.rate,transposeSemitones:this.transposeSemitones,transposeEnabled:this.transposeEnabled,playing:this.playing,enabledChannels:new Set(this.enabledChannels),programOverrides:new Map(this.programOverrides),channels:this.channels};}
   emit(){this.onUpdate(this.snapshot());}
-  findCursor(position){let low=0,high=this.events.length;while(low<high){const mid=(low+high)>>1;if(this.events[mid].startSeconds<position-1e-6)low=mid+1;else high=mid;}return low;}
+  findCursor(position){const events=this.output?this.outputEvents:this.events;let low=0,high=events.length;while(low<high){const mid=(low+high)>>1;if((this.output?events[mid].seconds:events[mid].startSeconds)<position-1e-6)low=mid+1;else high=mid;}return low;}
+  setOutput(output){if(this.output===output)return;this.stop();this.output=output;this.cursor=0;this.emit();}
+  restoreOutputState(position){
+    if(!this.output||position<=0)return;
+    this.outputUsed=true;
+    const states=new Map();
+    for(const event of this.outputEvents){
+      if(event.seconds>=position-1e-6)break;
+      const channel=event.channel+1;if(!this.enabledChannels.has(channel))continue;
+      if(!states.has(channel))states.set(channel,{bank:new Map(),program:null,controls:new Map(),pitch:null,pressure:null});
+      const state=states.get(channel),[status,a]=event.bytes,command=status>>4;
+      if(command===11&&a<120){if(a===0||a===32)state.bank.set(a,event.bytes);else state.controls.set(a,event.bytes);}
+      else if(command===12)state.program={bytes:event.bytes,bank:new Map(state.bank)};
+      else if(command===14)state.pitch=event.bytes;
+      else if(command===13)state.pressure=event.bytes;
+    }
+    for(const state of states.values()){
+      if(state.program){for(const message of state.program.bank.values())this.output.send(message);this.output.send(state.program.bytes);}
+      for(const message of state.bank.values())this.output.send(message);
+      for(const message of state.controls.values())this.output.send(message);
+      if(state.pitch)this.output.send(state.pitch);if(state.pressure)this.output.send(state.pressure);
+    }
+  }
   currentPosition(){return this.playing&&this.context?clamp((this.context.currentTime-this.anchor)*this.rate,0,this.duration):this.position;}
   ensureAudio(){if(!this.context){this.context=this.contextProvider();this.master=this.context.createGain();this.master.gain.value=.72;this.master.connect(this.context.destination);}return this.context;}
   async play(){
     if(this.playing)return;const context=this.ensureAudio();if(context.state==='suspended')await context.resume();
-    if(this.position>=this.duration)this.position=0;this.anchor=context.currentTime-this.position/this.rate;this.cursor=this.findCursor(this.position);this.playing=true;
-    this.timer=setInterval(()=>this.pump(),25);this.pump();this.emit();
+    if(this.position>=this.duration)this.position=0;this.anchor=context.currentTime-this.position/this.rate;this.cursor=this.findCursor(this.position);
+    this.outputUsed=!!this.output;
+    try{this.restoreOutputState(this.position);this.playing=true;this.timer=setInterval(()=>{try{this.pump();}catch(error){this.fail(error);}},25);this.pump();}
+    catch(error){this.fail(error);throw error;}this.emit();
   }
+  fail(error){this.playing=false;clearInterval(this.timer);this.timer=null;try{this.stopVoices();}catch(cleanupError){console.error('MIDI çıkışı susturulamadı:',cleanupError);}this.emit();this.onError(error);}
   pause(){if(!this.playing)return;this.position=this.currentPosition();this.playing=false;clearInterval(this.timer);this.timer=null;this.stopVoices();this.emit();}
   stop(){if(this.playing){this.playing=false;clearInterval(this.timer);this.timer=null;}this.position=0;this.cursor=0;this.stopVoices();this.emit();}
-  seek(seconds){const wasPlaying=this.playing;if(wasPlaying){this.position=this.currentPosition();this.stopVoices();}this.position=clamp(Number(seconds)||0,0,this.duration);this.cursor=this.findCursor(this.position);if(wasPlaying&&this.context){this.anchor=this.context.currentTime-this.position/this.rate;this.pump();}this.emit();}
-  setRate(rate){const next=clamp(Number(rate)||1,.5,1.5);if(next===this.rate)return;const wasPlaying=this.playing;if(wasPlaying){this.position=this.currentPosition();this.stopVoices();}this.rate=next;this.cursor=this.findCursor(this.position);if(wasPlaying&&this.context){this.anchor=this.context.currentTime-this.position/this.rate;this.pump();}this.emit();}
-  refreshPlayback(){if(this.playing&&this.context){this.position=this.currentPosition();this.stopVoices();this.anchor=this.context.currentTime-this.position/this.rate;this.cursor=this.findCursor(this.position);this.pump();}this.emit();}
+  seek(seconds){const wasPlaying=this.playing;if(wasPlaying){this.position=this.currentPosition();this.stopVoices();}this.position=clamp(Number(seconds)||0,0,this.duration);this.cursor=this.findCursor(this.position);if(wasPlaying&&this.context){this.anchor=this.context.currentTime-this.position/this.rate;this.restoreOutputState(this.position);this.pump();}this.emit();}
+  setRate(rate){const next=clamp(Number(rate)||1,.5,1.5);if(next===this.rate)return;const wasPlaying=this.playing;if(wasPlaying){this.position=this.currentPosition();this.stopVoices();}this.rate=next;this.cursor=this.findCursor(this.position);if(wasPlaying&&this.context){this.anchor=this.context.currentTime-this.position/this.rate;this.restoreOutputState(this.position);this.pump();}this.emit();}
+  refreshPlayback(){if(this.playing&&this.context){this.position=this.currentPosition();this.stopVoices();this.anchor=this.context.currentTime-this.position/this.rate;this.cursor=this.findCursor(this.position);this.restoreOutputState(this.position);this.pump();}this.emit();}
   setTransposeSemitones(semitones){this.transposeSemitones=clamp(Math.round(Number(semitones)||0),-12,12);this.refreshPlayback();}
   setTransposeEnabled(enabled){this.transposeEnabled=Boolean(enabled);this.refreshPlayback();}
-  setChannelEnabled(channel,enabled){const value=Number(channel);if(enabled)this.enabledChannels.add(value);else{this.enabledChannels.delete(value);if(this.context)for(const voice of [...activeVoices])if(voice.channel===value)stopVoice(this.context,voice);}this.emit();}
+  setChannelEnabled(channel,enabled){const value=Number(channel);if(enabled)this.enabledChannels.add(value);else{this.enabledChannels.delete(value);if(this.context&&!this.output)for(const voice of [...activeVoices])if(voice.channel===value)stopVoice(this.context,voice);}if(this.output)this.refreshPlayback();else this.emit();}
   programFor(channel,sourceProgram=null){const value=Number(channel);if(this.programOverrides.has(value))return this.programOverrides.get(value);return sourceProgram??this.channels.find(c=>c.channel===value)?.program??0;}
   setChannelProgram(channel,program){const value=Number(channel);if(program===null||program==='')this.programOverrides.delete(value);else this.programOverrides.set(value,clamp(Math.round(Number(program)||0),0,127));if(this.context)for(const voice of [...activeVoices])if(voice.channel===value)stopVoice(this.context,voice);this.emit();}
-  soloChannel(channel){this.enabledChannels=new Set([Number(channel)]);if(this.context)for(const voice of [...activeVoices])if(voice.channel!==Number(channel))stopVoice(this.context,voice);this.emit();}
-  selectChannels(channels){this.enabledChannels=new Set(channels.map(Number));if(this.context)for(const voice of [...activeVoices])if(!this.enabledChannels.has(voice.channel))stopVoice(this.context,voice);this.emit();}
-  stopVoices(){if(!this.context)return;for(const voice of [...activeVoices])stopVoice(this.context,voice);}
+  soloChannel(channel){this.selectChannels([Number(channel)]);}
+  selectChannels(channels){this.enabledChannels=new Set(channels.map(Number));if(this.output){this.refreshPlayback();return;}if(this.context)for(const voice of [...activeVoices])if(!this.enabledChannels.has(voice.channel))stopVoice(this.context,voice);this.emit();}
+  stopVoices(){if(this.output&&this.outputUsed){this.outputUsed=false;this.output.clear();for(const {channel} of this.channels){this.output.send([0xb0+channel-1,64,0]);this.output.send([0xb0+channel-1,120,0]);this.output.send([0xb0+channel-1,123,0]);}}if(!this.context)return;for(const voice of [...activeVoices])stopVoice(this.context,voice);}
   pump(){
     if(!this.playing||!this.context)return;const context=this.context;this.position=this.currentPosition();
     const horizon=context.currentTime+.18;
+    if(this.output){
+      this.outputUsed=true;
+      while(this.cursor<this.outputEvents.length){
+        const event=this.outputEvents[this.cursor],when=this.anchor+event.seconds/this.rate;if(when>horizon)break;this.cursor++;
+        if(!this.enabledChannels.has(event.channel+1))continue;
+        const bytes=[...event.bytes],command=bytes[0]>>4,channel=event.channel+1;
+        if((command===8||command===9)&&this.transposeEnabled&&!this.drumChannels.has(channel)){bytes[1]+=this.transposeSemitones;if(bytes[1]<0||bytes[1]>127)continue;}
+        this.output.send(bytes,performance.now()+Math.max(0,when-context.currentTime)*1000);
+      }
+      if(this.position>=this.duration){this.playing=false;clearInterval(this.timer);this.timer=null;this.position=this.duration;this.stopVoices();this.emit();return;}
+      const now=performance.now();if(now-this.lastUiUpdate>65){this.lastUiUpdate=now;this.emit();}return;
+    }
     while(this.cursor<this.events.length){
       const event=this.events[this.cursor],when=this.anchor+event.startSeconds/this.rate;if(when>horizon)break;this.cursor++;
       if(!this.enabledChannels.has(event.channel))continue;
@@ -616,7 +673,7 @@ const state={
   evaluated:new Map(),nextMiss:0,hits:0,misses:0,judged:0,visualBeat:-1,
   midi:null,midiInput:null,midiCluster:null,midiClusterTimer:null,midiNotes:new Map(),
   clock:{armed:false,running:false,ticks:0,lastTickMs:0,avgTickMs:0,pulseTimes:[],sourceId:null},
-  tapTimes:[],records:{},mutedPage:false,importedMidi:null,importedLesson:null,importedKey:null,midiPlayer:null,midiPracticeChannels:[]
+  tapTimes:[],records:{},mutedPage:false,importedMidi:null,importedLesson:null,importedKey:null,midiPlayer:null,midiPracticeChannels:[],mp3ApiAvailable:false,mp3JobId:null,mp3Result:null
 };
 try{const old=JSON.parse(localStorage.getItem(KEY)||'{}');if(old&&typeof old==='object')state.records=old;}catch{}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state.records));}catch{}};
@@ -764,9 +821,26 @@ function midiInputChanged(){for(const p of state.midi?.inputs.values()||[])p.onm
   for(const p of state.midi?.inputs.values()||[])p.onmidimessage=ev=>{const status=ev.data?.[0];if(status>=0xf8)handleClock(status,performance.now(),p.id);else if(p.id===state.midiInput?.id)handleMidi(ev);};
   $('midiStatus').textContent=state.midiInput?`Nota girişi: ${state.midiInput.name||'MIDI cihazı'}. Clock mesajları tüm giriş portlarında izlenir.`:'MIDI izni verildi; aktif nota girişi seçilmedi.';
 }
+function refreshMidiOutputs(){
+  const select=$('midiOutput'),current=select.value,ports=[...(state.midi?.outputs?.values()||[])].filter(port=>port.state!=='disconnected');
+  addSelectOptions(select,[{value:'',label:'Tarayıcı sesi'},...ports.map(port=>({value:port.id,label:port.name||'MIDI çıkışı'}))],current);
+  if(current&&!ports.some(port=>port.id===current)){
+    if(state.midiPlayer){try{state.midiPlayer.stop();}catch(error){console.error('MIDI çıkışı durdurulamadı:',error);}state.midiPlayer.output=null;state.midiPlayer.outputUsed=false;}
+    select.value='';updateOutputControls();
+    $('midiOutputStatus').textContent='MIDI çıkışı bağlantısı kesildi; çalma durduruldu. Yeniden bağlanıp çıkışı seç.';
+  }else if(!current)$('midiOutputStatus').textContent=ports.length?'Pa4X sesleri için bir MIDI çıkış portu seç.':'MIDI çıkışı bulunamadı; bağlantıyı açıp cihazı kontrol et.';
+}
+function midiOutputChanged(){
+  const id=$('midiOutput').value,previous=state.midiPlayer?.output?.id||'',output=id?state.midi?.outputs?.get(id):null;
+  if(id&&(!output||output.state==='disconnected')){$('midiOutputStatus').textContent='Seçilen MIDI çıkışı kullanılamıyor.';return;}
+  try{state.midiPlayer?.setOutput(output||null);$('midiOutputStatus').textContent=output?`${output.name||'MIDI çıkışı'} seçildi. Ses Pa4X üzerinden çalınır.`:'Tarayıcı sesi seçildi.';updateOutputControls();}
+  catch(error){$('midiOutput').value=previous;updateOutputControls();$('midiOutputStatus').textContent=`MIDI çıkışı değiştirilemedi: ${error.message||error}`;}
+}
+function updateOutputControls(){const external=!!$('midiOutput').value;$('midiPlayerChannels').querySelectorAll('[data-player-program]').forEach(select=>{select.disabled=external;});}
+function midiPlayerAction(action){try{action();}catch(error){if(state.midiPlayer)state.midiPlayer.fail(error);else $('midiOutputStatus').textContent=`MIDI oynatma hatası: ${error.message||error}`;}}
 function refreshMidi(){if(!state.midi)return;const input=$('device'),ports=[...state.midi.inputs.values()],current=input.value;input.innerHTML=ports.length?ports.map(p=>{const opt=document.createElement('option');opt.value=p.id;opt.textContent=p.name||'MIDI cihazı';return opt.outerHTML;}).join(''):'<option value="">Giriş bulunamadı</option>';input.disabled=ports.length===0;
   if(ports.length){const preferred=ports.find(p=>/pa4x.*keyboard|keyboard.*pa4x/i.test(p.name||''))||ports.find(p=>/pa4x/i.test(p.name||''))||ports[0];input.value=ports.some(p=>p.id===current)?current:preferred.id;}
-  midiInputChanged();
+  midiInputChanged();refreshMidiOutputs();
 }
 async function connect(){if(!navigator.requestMIDIAccess){$('midiStatus').textContent='Web MIDI desteklenmiyor. Windows Chrome veya Edge ile HTTPS / localhost kullan.';return;}
   try{state.midi=await navigator.requestMIDIAccess({sysex:false});refreshMidi();state.midi.onstatechange=refreshMidi;$('connect').textContent='✓ MIDI girişlerini yenile';}catch(e){$('midiStatus').textContent='MIDI bağlantı hatası: '+(e.message||String(e));}
@@ -790,7 +864,7 @@ function tapTempo(){const now=performance.now();state.tapTimes=state.tapTimes.fi
 const notePitch=n=>`${MIDI_NOTE_NAMES[n%12]}${Math.floor(n/12)-1}`;
 function addSelectOptions(select,items,selected){select.replaceChildren();for(const item of items){const option=document.createElement('option');option.value=String(item.value);option.textContent=item.label;select.appendChild(option);}if(selected!==undefined&&items.some(item=>String(item.value)===String(selected)))select.value=String(selected);}
 function appendGeneralMidiOptions(select){const divider=document.createElement('option');divider.value='gm-bank-heading';divider.disabled=true;divider.textContent='— General MIDI · 128 ses —';select.appendChild(divider);GM_INSTRUMENTS.forEach((name,program)=>{const option=document.createElement('option');option.value=`gm:${program}`;option.textContent=`GM ${String(program+1).padStart(3,'0')} · ${name}`;select.appendChild(option);});}
-function updateMidiMappingHint(){if(!state.importedMidi)return;const from=Number($('midiSourceKey').value),to=Number($('midiTargetKey').value);let semitones=(to-from+12)%12;if(semitones>6)semitones-=12;const sign=semitones>0?'+':'';const confidence=state.importedKey?.confidence<.2?' · Tahmin güveni düşük; kaynak kararı kontrol et.':'';const move=`Kaynak ton tahmini: ${state.importedKey?.name||'belirsiz'}${confidence} · Transpozisyon: ${sign}${semitones} yarım ses · Davul kanalı değişmeden kalır.`;$('midiMappingHint').textContent=state.importedPianoWarning?`${state.importedPianoWarning} ${move}`:move;$('prepareMidiLesson').textContent=`${MIDI_NOTE_NAMES[to]} karar çalışmasını hazırla`;$('midiTransposeLabel').textContent=`Şarkıyı ${MIDI_NOTE_NAMES[to]} kararına ${sign}${semitones} yarım ses transpoze dinle`;state.midiPlayer?.setTransposeSemitones(semitones);}
+function updateMidiMappingHint(){if(!state.importedMidi)return;const from=Number($('midiSourceKey').value),to=Number($('midiTargetKey').value);let semitones=(to-from+12)%12;if(semitones>6)semitones-=12;const sign=semitones>0?'+':'';const confidence=state.importedKey?.confidence<.2?' · Tahmin güveni düşük; kaynak kararı kontrol et.':'';const move=`Kaynak ton tahmini: ${state.importedKey?.name||'belirsiz'}${confidence} · Transpozisyon: ${sign}${semitones} yarım ses · Davul kanalı değişmeden kalır.`;$('midiMappingHint').textContent=state.importedPianoWarning?`${state.importedPianoWarning} ${move}`:move;$('prepareMidiLesson').textContent=`${MIDI_NOTE_NAMES[to]} karar çalışmasını hazırla`;$('midiTransposeLabel').textContent=`Şarkıyı ${MIDI_NOTE_NAMES[to]} kararına ${sign}${semitones} yarım ses transpoze dinle`;midiPlayerAction(()=>state.midiPlayer?.setTransposeSemitones(semitones));}
 function channelLabel(ch){return `Kanal ${ch.channel} · ${ch.instrument} · ${ch.noteCount} nota`}
 function renderMidiChannels(){const list=$('midiChannelSummary');list.replaceChildren();for(const ch of state.importedMidi.channels.filter(c=>c.noteCount)){const row=document.createElement('div');row.className='channel-row';row.textContent=`${channelLabel(ch)} · ${notePitch(ch.minNote)}–${notePitch(ch.maxNote)}`;list.appendChild(row);}}
 function playerTime(seconds){const total=Math.max(0,Math.floor(seconds||0));return `${Math.floor(total/60)}:${String(total%60).padStart(2,'0')}`;}
@@ -806,22 +880,23 @@ function updateMidiPlayerUI(snapshot){
 }
 function setupMidiPlayer(file,suggestions){
   state.midiPlayer?.dispose();state.midiPracticeChannels=[suggestions.bass,suggestions.chord].filter(Boolean);
-  const player=new MidiFilePlayer(file,{contextProvider:audio,onUpdate:updateMidiPlayerUI});state.midiPlayer=player;
+  const player=new MidiFilePlayer(file,{contextProvider:audio,onUpdate:updateMidiPlayerUI,onError:error=>{$('midiOutputStatus').textContent=`MIDI oynatma hatası: ${error.message||error}`;}});state.midiPlayer=player;
+  const outputId=$('midiOutput').value;if(outputId){const output=state.midi?.outputs?.get(outputId);if(output&&output.state!=='disconnected')player.setOutput(output);else{$('midiOutput').value='';$('midiOutputStatus').textContent='MIDI çıkışı bulunamadı; yeniden seç.';}}
   const list=$('midiPlayerChannels');list.replaceChildren();
   for(const channel of player.channels){
     const row=document.createElement('div');row.className='midi-player-channel';
     const label=document.createElement('label');label.className='midi-player-channel-label';
     const input=document.createElement('input');input.type='checkbox';input.checked=true;input.dataset.playerChannel=String(channel.channel);input.setAttribute('aria-label',`Kanal ${channel.channel} ${channel.instrument}`);
-    input.addEventListener('change',()=>player.setChannelEnabled(channel.channel,input.checked));
+    input.addEventListener('change',()=>midiPlayerAction(()=>player.setChannelEnabled(channel.channel,input.checked)));
     const name=document.createElement('span');name.textContent=`Kanal ${channel.channel} · ${channel.instrument}`;label.append(input,name);
     const instrument=document.createElement('select');instrument.className='midi-player-instrument';instrument.dataset.playerProgram=String(channel.channel);instrument.setAttribute('aria-label',`Kanal ${channel.channel} enstrümanı`);
     const sourceOption=document.createElement('option');sourceOption.value='';sourceOption.textContent='MIDI kaynağı';instrument.appendChild(sourceOption);
     GM_INSTRUMENTS.forEach((title,program)=>{const option=document.createElement('option');option.value=String(program);option.textContent=title;instrument.appendChild(option);});
     instrument.addEventListener('change',()=>player.setChannelProgram(channel.channel,instrument.value));
-    const solo=document.createElement('button');solo.type='button';solo.className='midi-solo';solo.textContent='Solo';solo.setAttribute('aria-label',`Yalnızca kanal ${channel.channel} çalsın`);solo.addEventListener('click',()=>player.soloChannel(channel.channel));
+    const solo=document.createElement('button');solo.type='button';solo.className='midi-solo';solo.textContent='Solo';solo.setAttribute('aria-label',`Yalnızca kanal ${channel.channel} çalsın`);solo.addEventListener('click',()=>midiPlayerAction(()=>player.soloChannel(channel.channel)));
     row.append(label,instrument,solo);list.appendChild(row);
   }
-  $('midiPlayer').hidden=false;updateMidiPlayerUI(player.snapshot());
+  $('midiPlayer').hidden=false;updateMidiPlayerUI(player.snapshot());updateOutputControls();
 }
 function loadMidiAnalysis(file,uploadedName){
   if(state.lesson.id==='midi-import'){state.importedLesson=null;state.levelGroup='all';$('levelGroup').value='all';fillLessonOptions(LESSONS[0].id);changeLesson(LESSONS[0].id);}state.importedMidi=file;file.uploadedName=uploadedName;
@@ -851,17 +926,133 @@ function loadMidiAnalysis(file,uploadedName){
 }
 async function handleMidiFile(event){const file=event.target.files?.[0];if(!file)return;state.midiPlayer?.dispose();state.midiPlayer=null;state.importedMidi=null;$('midiPlayer').hidden=true;$('midiImportStatus').classList.remove('good','bad','warn');$('midiImportStatus').textContent='MIDI dosyası analiz ediliyor…';try{const parsed=parseMidiFile(await file.arrayBuffer());loadMidiAnalysis(parsed,file.name);}catch(error){$('midiAnalysis').hidden=true;$('midiImportStatus').classList.add('bad');$('midiImportStatus').textContent=error.message||'MIDI dosyası okunamadı.';}}
 function prepareMidiLesson(){if(!state.importedMidi)return;try{const lesson=buildMidiLesson(state.importedMidi,{bassChannel:$('midiBassChannel').value,chordChannel:$('midiChordChannel').value||null,sourceKey:$('midiSourceKey').value,targetKey:$('midiTargetKey').value,startBar:$('midiStartBar').value,barCount:$('midiBarCount').value,bpm:tempoAt(state.importedMidi,(Number($('midiStartBar').value)-1)*measureTicks(state.importedMidi.ppq,meterAt(state.importedMidi,0)))});state.importedLesson=lesson;state.levelGroup='all';$('levelGroup').value='all';fillLessonOptions(lesson.id);changeLesson(lesson.id);$('maxnote').value='83';setFeedback(`✓ ${lesson.sourceBarCount} ölçü hazırlandı. Bas ve akorlar ${MIDI_NOTE_NAMES[lesson.targetKey]} kararına taşındı; MIDI girişinde bas ile akoru aynı anda çal.`,'good');}catch(error){$('midiImportStatus').classList.add('bad');$('midiImportStatus').textContent=error.message||'Bu MIDI için çalışma oluşturulamadı.';}}
+function setAudioAnalysisStatus(message,type=''){
+  const el=$('audioAnalysisStatus');if(!el)return;
+  el.classList.remove('good','bad','warn');if(type)el.classList.add(type);el.textContent=message;
+}
+function updateAudioAnalyzeButton(){
+  const file=$('audioFile').files?.[0],tooLarge=file&&file.size>100*1024*1024;
+  $('analyzeAudio').disabled=!state.mp3ApiAvailable||!file||!!tooLarge;
+}
+async function initializeMp3Analysis(){
+  $('audioFile').addEventListener('change',()=>{
+    state.mp3Result=null;$('audioResults').hidden=true;
+    const file=$('audioFile').files?.[0];
+    if(!file){setAudioAnalysisStatus('Henüz MP3 seçilmedi.');updateAudioAnalyzeButton();return;}
+    if(file.size>100*1024*1024){setAudioAnalysisStatus('Dosya 100 MB sınırını aşıyor.','bad');updateAudioAnalyzeButton();return;}
+    setAudioAnalysisStatus(`${file.name} seçildi. Analiz dosyayı bu Codespace'e gönderir.`);updateAudioAnalyzeButton();
+  });
+  $('analyzeAudio').addEventListener('click',startMp3Analysis);
+  $('audioLoadPractice').addEventListener('click',loadMp3PracticeIntoApp);
+  if(!/^https?:$/.test(location.protocol)){
+    $('audioServiceLabel').textContent='Yalnızca Codespace';
+    setAudioAnalysisStatus('MP3 analizi Codespace sunucusu gerektirir. Bu sayfayı Codespace portundan aç.','warn');
+    return;
+  }
+  try{
+    const response=await fetch(new URL('/api/health',location.href),{cache:'no-store'});
+    if(!response.ok)throw new Error('Analiz servisi yanıt vermedi.');
+    const health=await response.json();
+    if(health.service!=='basakor-akademi-audio')throw new Error('Bu adres MP3 analiz servisi değil.');
+    state.mp3ApiAvailable=true;$('audioServiceLabel').textContent='Codespace servisi hazır';
+    setAudioAnalysisStatus('MP3 ve sonuçlar özel Codespace alanında işlenir; GitHub deposuna veya Pages sitesine eklenmez.','good');
+    updateAudioAnalyzeButton();
+  }catch{
+    state.mp3ApiAvailable=false;$('audioServiceLabel').textContent='Codespace analiz sunucusu gerekir';
+    setAudioAnalysisStatus('MP3 analizi için Codespace terminalinde python scripts/web_server.py çalıştırıp uygulamayı 8765 portundan aç. GitHub Pages sürümü tek başına MP3 analizi yapmaz.','warn');
+    updateAudioAnalyzeButton();
+  }
+}
+function renderAudioJob(job){
+  $('audioProgressArea').hidden=false;$('audioProgress').value=Number(job.progress)||0;
+  $('audioProgressText').textContent=`${Number(job.progress)||0}%`;
+  $('audioStage').textContent=job.stage||'Analiz sürüyor';
+  $('audioProgressHint').textContent=job.message||'Bas ayırma adımı birkaç dakika sürebilir. Bu sayfayı açık bırak.';
+}
+async function pollMp3Job(jobId){
+  while(state.mp3JobId===jobId){
+    const response=await fetch(new URL(`/api/jobs/${jobId}`,location.href),{cache:'no-store'});
+    const job=await response.json();
+    if(!response.ok)throw new Error(job.error||'Analiz durumu alınamadı.');
+    renderAudioJob(job);
+    if(job.status==='completed'){
+      state.mp3Result=job.result;showMp3Results(job.result);
+      setAudioAnalysisStatus('Analiz tamamlandı. Birleşik bas + akor MIDI dosyasını çalışma bölümüne aktarabilirsin.','good');
+      return;
+    }
+    if(job.status==='failed'){
+      $('audioProgressHint').textContent=job.details||job.error||'Analiz başarısız oldu.';
+      throw new Error(job.error||'Ses analizi tamamlanamadı.');
+    }
+    await new Promise(resolve=>setTimeout(resolve,2000));
+  }
+}
+function showMp3Results(result){
+  $('audioResults').hidden=false;
+  $('audioSummary').textContent=`${result.file_name} · ${result.tempo_bpm} BPM tahmini · ${result.time_signature} tahmini · ${result.chord_count} akor bölümü`;
+  $('audioLoadPractice').disabled=false;
+  $('downloadBassWav').href=result.bass_wav_url;$('downloadBassMidi').href=result.bass_midi_url;
+  $('downloadChords').href=result.chords_url;$('downloadReport').href=result.report_url;
+  const list=$('audioChordPreview');list.replaceChildren();
+  const segments=result.chord_segments||[];
+  for(const segment of segments.slice(0,24)){
+    const item=document.createElement('li'),seconds=Math.max(0,Number(segment.start_seconds)||0);
+    const time=`${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,'0')}`;
+    item.textContent=`${time} · ${segment.chord}`;list.appendChild(item);
+  }
+  if(!segments.length){const item=document.createElement('li');item.textContent='Akor tahmini bulunamadı.';list.appendChild(item);}
+}
+async function startMp3Analysis(){
+  const file=$('audioFile').files?.[0];if(!file||!state.mp3ApiAvailable)return;
+  if(file.size>100*1024*1024){setAudioAnalysisStatus('Dosya 100 MB sınırını aşıyor.','bad');return;}
+  state.mp3JobId=null;state.mp3Result=null;$('audioResults').hidden=true;
+  $('audioProgressArea').hidden=false;$('audioProgress').value=1;$('audioProgressText').textContent='1%';
+  $('audioStage').textContent='Dosya Codespace\'e yükleniyor';$('audioProgressHint').textContent='Yükleme tamamlanınca analiz otomatik başlar.';
+  $('analyzeAudio').disabled=true;setAudioAnalysisStatus('MP3 Codespace analiz sunucusuna gönderiliyor…');
+  try{
+    const url=new URL('/api/analyze',location.href);url.searchParams.set('filename',file.name);
+    const response=await fetch(url,{method:'POST',headers:{'Content-Type':file.type||'application/octet-stream'},body:file,cache:'no-store'});
+    const data=await response.json();if(!response.ok)throw new Error(data.error||'MP3 yüklenemedi.');
+    state.mp3JobId=data.job_id;await pollMp3Job(data.job_id);
+  }catch(error){
+    setAudioAnalysisStatus(error.message||'MP3 analizi başarısız oldu.','bad');
+  }finally{
+    $('analyzeAudio').disabled=false;updateAudioAnalyzeButton();
+  }
+}
+async function loadMp3PracticeIntoApp(){
+  const result=state.mp3Result;if(!result?.practice_midi_url)return;
+  $('audioLoadPractice').disabled=true;
+  try{
+    const response=await fetch(new URL(result.practice_midi_url,location.href),{cache:'no-store'});
+    if(!response.ok)throw new Error('Birleşik çalışma MIDI dosyası indirilemedi.');
+    const blob=await response.blob(),baseName=(result.file_name||'MP3').replace(/\.[^.]+$/,'');
+    const file=new File([blob],`${baseName}_bas_akor.mid`,{type:'audio/midi'});
+    await handleMidiFile({target:{files:[file]}});
+    if(!state.importedMidi)throw new Error($('midiImportStatus').textContent||'MIDI çalışma dosyası okunamadı.');
+    $('midiBarCount').value='2';prepareMidiLesson();
+    if(!state.importedLesson)throw new Error('Çalışma bölümü hazırlanamadı.');
+    $('heading-import').scrollIntoView({behavior:'smooth',block:'start'});
+    setAudioAnalysisStatus('Bas MIDI ve tahmini piano akorları çalışma bölümüne aktarıldı; 2 ölçülük alıştırma hazır.','good');
+  }catch(error){
+    setAudioAnalysisStatus(error.message||'Çalışma MIDI dosyası aktarılamadı.','bad');
+  }finally{
+    $('audioLoadPractice').disabled=false;
+  }
+}
+
 function initialize(){drawKeyboard();$('levelGroup').value=state.levelGroup;fillLessonOptions();appendGeneralMidiOptions($('bassTone'));appendGeneralMidiOptions($('epianoTone'));initializeMixControls();for(let ch=1;ch<=16;ch++){const opt=document.createElement('option');opt.value=String(ch);opt.textContent='Kanal '+ch;$('channel').appendChild(opt)}
   $('play').addEventListener('click',start);$('stop').addEventListener('click',()=>stop());$('levelGroup').addEventListener('change',ev=>changeLevelGroup(ev.target.value));$('lesson').addEventListener('change',ev=>changeLesson(ev.target.value));$('bpm').addEventListener('input',ev=>setBpm(Number(ev.target.value)));$('sync').addEventListener('change',selectSync);$('demo').addEventListener('change',ev=>state.demo=ev.target.checked);$('strict').addEventListener('change',ev=>state.strict=ev.target.checked);$('tap').addEventListener('click',tapTempo);$('connect').addEventListener('click',()=>state.midi?refreshMidi():connect());$('device').addEventListener('change',midiInputChanged);$('bassTone').addEventListener('change',ev=>{state.bassTone=ev.target.value;});$('epianoTone').addEventListener('change',ev=>{state.epianoTone=ev.target.value;});
-  $('midiFile').addEventListener('change',handleMidiFile);$('midiSourceKey').addEventListener('change',updateMidiMappingHint);$('midiTargetKey').addEventListener('change',updateMidiMappingHint);$('prepareMidiLesson').addEventListener('click',prepareMidiLesson);
+  $('midiFile').addEventListener('change',handleMidiFile);initializeMp3Analysis();$('midiSourceKey').addEventListener('change',updateMidiMappingHint);$('midiTargetKey').addEventListener('change',updateMidiMappingHint);$('prepareMidiLesson').addEventListener('click',prepareMidiLesson);
+  $('midiOutput').addEventListener('change',midiOutputChanged);
   $('midiPlayerPlay').addEventListener('click',async()=>{if(!state.midiPlayer)return;if(state.playing)stop();try{await state.midiPlayer.play();}catch(error){setFeedback(`MIDI sesi açılamadı: ${error.message||error}`,'bad');}});
-  $('midiPlayerPause').addEventListener('click',()=>state.midiPlayer?.pause());$('midiPlayerStop').addEventListener('click',()=>state.midiPlayer?.stop());
-  $('midiSeek').addEventListener('change',event=>{if(state.midiPlayer)state.midiPlayer.seek(state.midiPlayer.duration*Number(event.target.value)/1000);});
-  $('midiPlayerRate').addEventListener('change',event=>state.midiPlayer?.setRate(event.target.value));
-  $('midiTransposePlayback').addEventListener('change',event=>state.midiPlayer?.setTransposeEnabled(event.target.checked));
-  $('midiPlayerAll').addEventListener('click',()=>state.midiPlayer?.selectChannels(state.midiPlayer.channels.map(ch=>ch.channel)));
-  $('midiPlayerPractice').addEventListener('click',()=>state.midiPlayer?.selectChannels(state.midiPracticeChannels));
-  $('midiPlayerMute').addEventListener('click',()=>state.midiPlayer?.selectChannels([]));
+  $('midiPlayerPause').addEventListener('click',()=>midiPlayerAction(()=>state.midiPlayer?.pause()));$('midiPlayerStop').addEventListener('click',()=>midiPlayerAction(()=>state.midiPlayer?.stop()));
+  $('midiSeek').addEventListener('change',event=>midiPlayerAction(()=>{if(state.midiPlayer)state.midiPlayer.seek(state.midiPlayer.duration*Number(event.target.value)/1000);}));
+  $('midiPlayerRate').addEventListener('change',event=>midiPlayerAction(()=>state.midiPlayer?.setRate(event.target.value)));
+  $('midiTransposePlayback').addEventListener('change',event=>midiPlayerAction(()=>state.midiPlayer?.setTransposeEnabled(event.target.checked)));
+  $('midiPlayerAll').addEventListener('click',()=>midiPlayerAction(()=>state.midiPlayer?.selectChannels(state.midiPlayer.channels.map(ch=>ch.channel))));
+  $('midiPlayerPractice').addEventListener('click',()=>midiPlayerAction(()=>state.midiPlayer?.selectChannels(state.midiPracticeChannels)));
+  $('midiPlayerMute').addEventListener('click',()=>midiPlayerAction(()=>state.midiPlayer?.selectChannels([])));
   $('reset').addEventListener('click',()=>{if(!window.confirm('Bu dersin yerel başarı kaydı sıfırlansın mı?'))return;delete state.records[state.lesson.id];save();resetSession();setFeedback('Bu dersin ilerleme kaydı sıfırlandı.');});
   document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state.midiPlayer?.playing)state.midiPlayer.pause();if(state.playing&&state.mode==='app'){stop();setFeedback('Sekme arka plana geçtiği için ritim durduruldu. Tekrar başlatabilirsin.');}}});
   window.addEventListener('pagehide',()=>{stop();state.midiPlayer?.dispose();});

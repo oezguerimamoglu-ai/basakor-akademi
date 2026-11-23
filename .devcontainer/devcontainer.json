@@ -1,9 +1,8 @@
 {
-  "name": "BasAkor Akademi MP3 Analizi",
+  "name": "BasAkor Akademi",
   "build": {
     "dockerfile": "Dockerfile"
   },
-  "postCreateCommand": "bash .devcontainer/setup-audio.sh",
   "customizations": {
     "vscode": {
       "extensions": [
