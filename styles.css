@@ -55,3 +55,41 @@
 .audio-chords ol{max-height:240px;overflow:auto;padding-left:22px}
 .audio-chords li{padding:3px 0;font-variant-numeric:tabular-nums}
 @media(max-width:650px){.audio-downloads{grid-template-columns:1fr}}
+
+/* Song structure visualization */
+.midi-structure { margin: 15px 0; }
+.midi-structure h3 { margin: 0 0 12px; font-size: 14px; font-weight: 700; color: #c4d1e5; letter-spacing: 0.5px; }
+.sections-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+.section-item { padding: 12px; background: #101d31; border: 1px solid #354860; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+.section-item:hover { border-color: #9be4bc; background: #131f36; }
+.section-item.selected { border-color: #a6edc1; background: #1a2d3e; box-shadow: inset 0 0 0 1px #9be4bc; }
+.section-header { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; color: #d8e5f5; font-size: 12px; margin-bottom: 6px; }
+.section-header strong { font-size: 13px; font-weight: 700; color: #e5f4ff; }
+.section-time { color: #9aacbf; font-size: 11px; }
+.section-meta { display: flex; gap: 12px; font-size: 11px; color: #8a9cb5; }
+.measures { padding: 2px 6px; background: #0d1a2d; border-radius: 4px; }
+.tempo { padding: 2px 6px; background: #0d1a2d; border-radius: 4px; }
+
+/* Track analysis display */
+.tracks-info { display: grid; gap: 10px; }
+.track-role { padding: 12px; border-radius: 10px; border: 1px solid #445673; }
+.bass-track { background: rgba(140, 191, 255, 0.08); border-color: #4a6b9e; }
+.chord-track { background: rgba(249, 196, 125, 0.08); border-color: #9e7649; }
+.drums-track { background: rgba(107, 114, 148, 0.08); border-color: #3f4a62; }
+.track-role h4 { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; }
+.bass-track h4 { color: #9cccff; }
+.chord-track h4 { color: #ffcf91; }
+.drums-track h4 { color: #9aacbf; }
+.track-detail { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: #b8c9dc; }
+.track-detail span { display: flex; justify-content: space-between; gap: 8px; }
+.channel { font-weight: 600; }
+.instrument { color: #a6c0d9; font-style: italic; }
+.range { color: #8a9cb5; }
+.count { color: #8a9cb5; font-variant-numeric: tabular-nums; }
+.status { color: #a4f7c7; }
+
+@media(max-width: 650px) {
+  .section-header { flex-direction: column; align-items: flex-start; }
+  .track-role { padding: 10px; }
+  .track-detail { font-size: 10px; }
+}

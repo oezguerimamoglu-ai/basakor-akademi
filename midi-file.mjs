@@ -214,6 +214,64 @@ export function suggestedChannels(file){
   return {bass:bass?.channel??null,chord:chord?.channel??null,drums:drums?.channel??null,hasActivePiano:piano.length>0};
 }
 
+/** Extract song sections from MIDI markers. Returns array of {id, name, startTick, endTick, loopTicks, durationSeconds} */
+export function extractSongSections(file){
+  const markers=file.events.filter(e=>e.type==='marker');
+  if(!markers.length)return [];
+  
+  // Helper to calculate duration in seconds (same logic as midiTickToSeconds)
+  const tickToSeconds=(tick)=>{
+    let seconds=0,cursor=0,bpm=tempoAt(file,0);
+    for(const tempo of file.tempoMap){
+      if(tempo.tick>tick)break;
+      seconds+=(tempo.tick-cursor)*60/(file.ppq*bpm);
+      cursor=tempo.tick;
+      bpm=tempo.bpm;
+    }
+    seconds+=(tick-cursor)*60/(file.ppq*bpm);
+    return seconds;
+  };
+  
+  const sections=[];
+  for(let i=0;i<markers.length;i++){
+    const marker=markers[i];
+    const nextMarkerTick=markers[i+1]?.tick??file.endTick;
+    const loopTicks=nextMarkerTick-marker.tick;
+    
+    sections.push({
+      id:`section-${i}`,
+      name:marker.text||`Bölüm ${i+1}`,
+      startTick:marker.tick,
+      endTick:nextMarkerTick,
+      loopTicks,
+      durationSeconds:tickToSeconds(nextMarkerTick)-tickToSeconds(marker.tick),
+      order:i
+    });
+  }
+  
+  return sections;
+}
+
+/** Auto-detect which tracks should be used for practice: bass (play) + chord (listen). */
+export function detectPracticeTracks(file,userPreference={bassChannel:null,chordChannel:null}){
+  const suggested=suggestedChannels(file);
+  
+  // User preference overrides auto-detection
+  const bassChannel=userPreference.bassChannel!==null?userPreference.bassChannel:suggested.bass;
+  const chordChannel=userPreference.chordChannel!==null?userPreference.chordChannel:suggested.chord;
+  
+  // Find actual channel objects
+  const bass=file.channels.find(c=>c.channel===bassChannel);
+  const chord=file.channels.find(c=>c.channel===chordChannel);
+  const drums=file.channels.find(c=>c.channel===10);
+  
+  return {
+    bass:{channel:bassChannel,instrument:bass?.instrument||'Enstrüman belirtilmemiş',minNote:bass?.minNote,maxNote:bass?.maxNote,noteCount:bass?.noteCount||0},
+    chord:{channel:chordChannel,instrument:chord?.instrument||'Enstrüman belirtilmemiş',minNote:chord?.minNote,maxNote:chord?.maxNote,noteCount:chord?.noteCount||0},
+    drums:{channel:10,active:!!drums,instrument:drums?.instrument||'Davul'}
+  };
+}
+
 export const GM_INSTRUMENTS=GM;
 export const MIDI_NOTE_NAMES=NOTE_NAMES;
 export const midiPitchName=pcName;
