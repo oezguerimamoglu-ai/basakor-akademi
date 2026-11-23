@@ -62,13 +62,13 @@
       </section>
       <section class="panel settings" aria-labelledby="heading-settings">
         <div class="section-head"><h2 id="heading-settings"><span class="number">02</span> Çalışmayı seç</h2><span class="hint" id="levelTag">Başlangıç</span></div>
-        <div class="fields">
-          <label class="field" for="levelGroup"><span>Seviye</span><select id="levelGroup"><option value="beginner">Başlangıç · temel</option><option value="meters">Orta · ritim kalıpları</option><option value="chords">İleri · akor geçişleri</option><option value="all" selected>Tüm seviyeler · 14 kalıp</option></select></label>
-          <label class="field" for="lesson"><span>Çalışma kalıbı</span><select id="lesson"></select></label>
+        <div class="fields" id="lessonFields">
+          <label class="field" id="levelGroupField" for="levelGroup"><span>Seviye</span><select id="levelGroup"><option value="beginner">Başlangıç · temel</option><option value="meters">Orta · ritim kalıpları</option><option value="chords">İleri · akor geçişleri</option><option value="all" selected>Tüm seviyeler · 14 kalıp</option></select></label>
+          <label class="field" id="lessonField" for="lesson"><span>Çalışma kalıbı</span><select id="lesson"></select></label>
           <div class="field"><label for="bpm"><span>Tempo <strong id="tempoValue">65 BPM</strong></span></label><input type="range" id="bpm" min="45" max="160" step="1" value="65"></div>
-          <label class="field" for="sync"><span>Davul kaynağı</span><select id="sync"><option value="app">Uygulama davulu</option><option value="clock">Pa4X davulu · MIDI Clock</option></select></label>
-          <label class="field wide" for="bassTone"><span>Bas sesi · gerçek örnek veya 128 General MIDI seçeneği</span><select id="bassTone"><option value="finger">Parmak bas · Yamaha RBX örneği</option><option value="pick">Penayla bas · Yamaha RBX örneği</option></select></label>
-          <label class="field wide" for="epianoTone"><span>Akor sesi · e-piyano örneği veya 128 General MIDI seçeneği</span><select id="epianoTone"><option value="ep1">DX7 E. Piano 1 · klasik örnek</option><option value="ep2">DX7 e-piyano · parlak örnek</option></select></label>
+          <label class="field" id="syncField" for="sync"><span>Davul kaynağı</span><select id="sync"><option value="app">Uygulama davulu</option><option value="clock">Pa4X davulu · MIDI Clock</option></select></label>
+          <label class="field wide" id="bassToneField" for="bassTone"><span>Bas sesi · gerçek örnek veya 128 General MIDI seçeneği</span><select id="bassTone"><option value="finger">Parmak bas · Yamaha RBX örneği</option><option value="pick">Penayla bas · Yamaha RBX örneği</option></select></label>
+          <label class="field wide" id="epianoToneField" for="epianoTone"><span>Akor sesi · e-piyano örneği veya 128 General MIDI seçeneği</span><select id="epianoTone"><option value="ep1">DX7 E. Piano 1 · klasik örnek</option><option value="ep2">DX7 e-piyano · parlak örnek</option></select></label>
           <div class="volume-balance wide" role="group" aria-labelledby="volumeBalanceTitle">
             <div class="volume-balance-title"><strong id="volumeBalanceTitle">Bas–akor ses dengesi</strong><span>Seçtiğin sesleri ayrı ayarla</span></div>
             <div class="volume-balance-controls">

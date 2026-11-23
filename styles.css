@@ -48,6 +48,11 @@
 .audio-progress-head span{color:#a6edc1;font-variant-numeric:tabular-nums}
 .audio-progress progress{width:100%;height:12px;accent-color:#a6edc1}
 .audio-summary{padding:13px;border:1px solid #557963;border-radius:12px;background:#10251f;color:#c8f1d6;font-size:13px;line-height:1.6;margin-bottom:12px}
+#levelGroupField[data-hidden],.fields[data-midi] #levelGroupField,
+#lessonField[data-hidden],.fields[data-midi] #lessonField,
+#syncField[data-hidden],.fields[data-midi] #syncField,
+#bassToneField[data-hidden],.fields[data-midi] #bassToneField,
+#epianoToneField[data-hidden],.fields[data-midi] #epianoToneField{display:none}
 .audio-downloads{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
 .audio-download{display:flex;align-items:center;justify-content:center;min-height:40px;padding:9px 11px;border:1px solid #50617e;border-radius:10px;background:#111d32;color:#d5e6f7;text-align:center;text-decoration:none;font-size:12px;font-weight:700}
 .audio-download:hover{border-color:#9be4bc;color:#a6edc1}
