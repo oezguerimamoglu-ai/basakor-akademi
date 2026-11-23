@@ -303,34 +303,62 @@ function setupMidiPlayer(file,suggestions){
   $('midiPlayer').hidden=false;updateMidiPlayerUI(player.snapshot());updateOutputControls();
 }
 function loadMidiAnalysis(file,uploadedName){
-  state.importedMidi=file;file.uploadedName=uploadedName;
-  const suggestions=suggestedChannels(file);if(!suggestions.bass)throw new Error('Dosyada nota içeren bir bas kanalı bulunamadı.');
-  const analysisChannels=[suggestions.bass,suggestions.chord].filter(Boolean);state.importedKey=detectKey(file,analysisChannels);
-  const active=file.channels.filter(c=>c.noteCount),bars=Math.min(500,Math.floor(file.endTick/measureTicks(file.ppq,meterAt(file,0)))),variableMeter=new Set(file.meterMap.map(m=>`${m.numerator}/${m.denominator}`)).size>1;
-  const firstBass=active.find(c=>c.channel===suggestions.bass)?.notes.reduce((min,n)=>Math.min(min,n.tick),Infinity)??0;
-  const firstBassBar=Math.max(1,Math.floor(firstBass/measureTicks(file.ppq,meterAt(file,0)))+1),defaultBar=Math.min(Math.max(1,firstBassBar),Math.max(1,bars));
-  addSelectOptions($('midiBassChannel'),active.map(c=>({value:c.channel,label:channelLabel(c)})),suggestions.bass);
-  const chordOptions=[{value:'',label:'Yok · yalnızca bas çalış'}].concat(active.map(c=>({value:c.channel,label:channelLabel(c)})));
-  addSelectOptions($('midiChordChannel'),chordOptions,suggestions.chord??'');
-  const keyOptions=MIDI_NOTE_NAMES.map((name,value)=>({value,label:name}));
-  addSelectOptions($('midiSourceKey'),keyOptions,state.importedKey.tonic);addSelectOptions($('midiTargetKey'),keyOptions,state.importedKey.tonic);
-  addSelectOptions($('midiStartBar'),Array.from({length:Math.max(1,bars)},(_,i)=>({value:i+1,label:`Ölçü ${i+1}`})),defaultBar);
-  state.midiSections=styleSections(file);
-  addSelectOptions($('midiSection'),state.midiSections.length?state.midiSections.map((section,i)=>({value:i,label:section.label})):[{value:'',label:'İşaret bulunamadı · ölçü seç'}]);
-  const startBarParent=$('midiStartBar')?.parentElement?.parentElement;const barCountParent=$('midiBarCount')?.parentElement?.parentElement;if(startBarParent)startBarParent.hidden=!!state.midiSections.length;if(barCountParent)barCountParent.hidden=!!state.midiSections.length;
-  const duration=sourceDurationSeconds(file),meter=meterAt(file,0),bpm=tempoAt(file,0);
-  file.title=file.title&&file.title!=='Yüklenen MIDI'?file.title:uploadedName.replace(/\.midi?$/i,'');
-  const summary=document.createElement('div');summary.className='summary-card';
-  const displayTitle=file.title&&file.title!=='Yüklenen MIDI'?`${uploadedName} · ${file.title}`:uploadedName;
-  const metaKey=file.keyMap[0]?` · Anahtar imi ${file.keyMap[0].sf} diyez/bemol${file.keyMap[0].minor?' · minör':' · majör'}`:'';
-  summary.textContent=`${displayTitle} · Type ${file.format} · ${file.trackCount} parça · ${active.length} etkin kanal · ${meter.numerator}/${meter.denominator} · ${Math.round(bpm)} BPM${file.tempoMap.length>1?' (tempo haritası var)':''} · ≈${Math.ceil(bars)} ölçü · ${Math.floor(duration/60)}:${String(Math.round(duration%60)).padStart(2,'0')}${metaKey}`;
-  $('midiSummary').replaceChildren(summary);renderMidiChannels();setupMidiPlayer(file,suggestions);
-  state.importedPianoWarning='Korg ses adları General MIDI adlarından farklı olabilir; bas ve sağ el kanalını kontrol et.';
-  $('midiAnalysis').hidden=false;updateMidiMappingHint();$('prepareMidiLesson').disabled=false;
-  $('midiImportStatus').textContent=`${uploadedName} tarayıcıda analiz edildi. ${state.midiSections.length?`${state.midiSections.length} style bölümü bulundu.`:'Style işareti bulunamadı; ölçü seçebilirsin.'}${variableMeter?' Seçilen bölümde ölçü sabit olmalı.':''}`;
-  $('midiImportStatus').classList.remove('good','bad','warn');$('midiImportStatus').classList.add('good');
+  try {
+    state.importedMidi=file;file.uploadedName=uploadedName;
+    const suggestions=suggestedChannels(file);if(!suggestions.bass)throw new Error('Dosyada nota içeren bir bas kanalı bulunamadı.');
+    const analysisChannels=[suggestions.bass,suggestions.chord].filter(Boolean);state.importedKey=detectKey(file,analysisChannels);
+    const active=file.channels.filter(c=>c.noteCount),bars=Math.min(500,Math.floor(file.endTick/measureTicks(file.ppq,meterAt(file,0)))),variableMeter=new Set(file.meterMap.map(m=>`${m.numerator}/${m.denominator}`)).size>1;
+    const firstBass=active.find(c=>c.channel===suggestions.bass)?.notes.reduce((min,n)=>Math.min(min,n.tick),Infinity)??0;
+    const firstBassBar=Math.max(1,Math.floor(firstBass/measureTicks(file.ppq,meterAt(file,0)))+1),defaultBar=Math.min(Math.max(1,firstBassBar),Math.max(1,bars));
+    addSelectOptions($('midiBassChannel'),active.map(c=>({value:c.channel,label:channelLabel(c)})),suggestions.bass);
+    const chordOptions=[{value:'',label:'Yok · yalnızca bas çalış'}].concat(active.map(c=>({value:c.channel,label:channelLabel(c)})));
+    addSelectOptions($('midiChordChannel'),chordOptions,suggestions.chord??'');
+    const keyOptions=MIDI_NOTE_NAMES.map((name,value)=>({value,label:name}));
+    addSelectOptions($('midiSourceKey'),keyOptions,state.importedKey.tonic);addSelectOptions($('midiTargetKey'),keyOptions,state.importedKey.tonic);
+    addSelectOptions($('midiStartBar'),Array.from({length:Math.max(1,bars)},(_,i)=>({value:i+1,label:`Ölçü ${i+1}`})),defaultBar);
+    state.midiSections=styleSections(file);
+    addSelectOptions($('midiSection'),state.midiSections.length?state.midiSections.map((section,i)=>({value:i,label:section.label})):[{value:'',label:'İşaret bulunamadı · ölçü seç'}]);
+    const startBarParent=$('midiStartBar')?.parentElement?.parentElement;const barCountParent=$('midiBarCount')?.parentElement?.parentElement;if(startBarParent)startBarParent.hidden=!!state.midiSections.length;if(barCountParent)barCountParent.hidden=!!state.midiSections.length;
+    const duration=sourceDurationSeconds(file),meter=meterAt(file,0),bpm=tempoAt(file,0);
+    file.title=file.title&&file.title!=='Yüklenen MIDI'?file.title:uploadedName.replace(/\.midi?$/i,'');
+    const summary=document.createElement('div');summary.className='summary-card';
+    const displayTitle=file.title&&file.title!=='Yüklenen MIDI'?`${uploadedName} · ${file.title}`:uploadedName;
+    const metaKey=file.keyMap[0]?` · Anahtar imi ${file.keyMap[0].sf} diyez/bemol${file.keyMap[0].minor?' · minör':' · majör'}`:'';
+    summary.textContent=`${displayTitle} · Type ${file.format} · ${file.trackCount} parça · ${active.length} etkin kanal · ${meter.numerator}/${meter.denominator} · ${Math.round(bpm)} BPM${file.tempoMap.length>1?' (tempo haritası var)':''} · ≈${Math.ceil(bars)} ölçü · ${Math.floor(duration/60)}:${String(Math.round(duration%60)).padStart(2,'0')}${metaKey}`;
+    $('midiSummary').replaceChildren(summary);renderMidiChannels();setupMidiPlayer(file,suggestions);
+    state.importedPianoWarning='Korg ses adları General MIDI adlarından farklı olabilir; bas ve sağ el kanalını kontrol et.';
+    $('midiAnalysis').hidden=false;updateMidiMappingHint();$('prepareMidiLesson').disabled=false;
+    $('midiImportStatus').textContent=`${uploadedName} tarayıcıda analiz edildi. ${state.midiSections.length?`${state.midiSections.length} style bölümü bulundu.`:'Style işareti bulunamadı; ölçü seçebilirsin.'}${variableMeter?' Seçilen bölümde ölçü sabit olmalı.':''}`;
+    $('midiImportStatus').classList.remove('good','bad','warn');$('midiImportStatus').classList.add('good');
+  } catch(error) {
+    console.error('loadMidiAnalysis error:', error);
+    state.importedMidi=null;
+    $('midiAnalysis').hidden=true;
+    $('midiImportStatus').classList.add('bad');
+    $('midiImportStatus').textContent=error.message||'MIDI dosyası işlenemedi.';
+    throw error;
+  }
 }
-async function handleMidiFile(event){const file=event.target.files?.[0];if(!file)return;if(state.playing)stop();state.midiPlayer?.dispose();state.midiPlayer=null;state.importedMidi=null;$('midiPlayer').hidden=true;$('midiImportStatus').classList.remove('good','bad','warn');$('midiImportStatus').textContent='MIDI dosyası analiz ediliyor…';try{const parsed=parseMidiFile(await file.arrayBuffer());loadMidiAnalysis(parsed,file.name);}catch(error){$('midiAnalysis').hidden=true;$('midiImportStatus').classList.add('bad');$('midiImportStatus').textContent=error.message||'MIDI dosyası okunamadı.';}}
+async function handleMidiFile(event){
+  const file=event.target.files?.[0];
+  if(!file)return;
+  if(state.playing)stop();
+  state.midiPlayer?.dispose();
+  state.midiPlayer=null;
+  state.importedMidi=null;
+  $('midiPlayer').hidden=true;
+  $('midiImportStatus').classList.remove('good','bad','warn');
+  $('midiImportStatus').textContent='MIDI dosyası analiz ediliyor…';
+  try{
+    const parsed=parseMidiFile(await file.arrayBuffer());
+    loadMidiAnalysis(parsed,file.name);
+  }catch(error){
+    console.error('MIDI file processing error:', error);
+    $('midiAnalysis').hidden=true;
+    $('midiImportStatus').classList.add('bad');
+    $('midiImportStatus').textContent=error.message||'MIDI dosyası okunamadı.';
+  }
+}
 function prepareMidiLesson(){if(!state.importedMidi)return;if(state.playing){setFeedback('Yeni bölüm hazırlamadan önce çalışmayı durdur.','bad');return;}try{
   if(!state.midiPlayer)throw new Error('MIDI oynatıcısı yüklenemedi. Lütfen MIDI dosyasını tekrar yükle.');
   const file=state.importedMidi,barTicks=measureTicks(file.ppq,meterAt(file,0)),startTick=(Number($('midiStartBar').value)-1)*barTicks;
