@@ -362,5 +362,6 @@ function initialize(){drawKeyboard();$('levelGroup').value=state.levelGroup;fill
   if(state.lesson){setBpm(state.lesson.defaultBpm);lessonMarkup();}selectSync();
   if('serviceWorker' in navigator && /^https?:/.test(location.protocol))navigator.serviceWorker.register('./sw.js').catch(()=>{});
   window.basakorDebug={version:VERSION,getState:()=>({playing:state.playing,lesson:state.lesson.id,levelGroup:state.levelGroup,mode:state.mode,bpm:state.bpm,bassVolume:state.bassVolume,chordVolume:state.chordVolume,hits:state.hits,misses:state.misses,imported:!!state.importedMidi}),simulateMidi:bytes=>handleMidi({data:new Uint8Array(bytes)})};
+  connect();
 }
 initialize();
